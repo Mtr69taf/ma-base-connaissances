@@ -821,78 +821,332 @@
 
   // ─── THEME ENGINE ─────────────────────────────────────────────────────────
   const THEMES = {
-    'philosophie':    { cls: 'theme-philosophie',    sym1: '∞',  sym2: '⊕', title: 'Philosophie & Métaphysique' },
-    'métaphysique':   { cls: 'theme-philosophie',    sym1: '∞',  sym2: '⊕' },
-    'metaphysique':   { cls: 'theme-philosophie',    sym1: '∞',  sym2: '⊕' },
-    'antique':        { cls: 'theme-philosophie',    sym1: 'Ω',  sym2: '△' },
-    'religions':      { cls: 'theme-religions',      sym1: '✦',  sym2: '☽' },
-    'spiritualité':   { cls: 'theme-religions',      sym1: '✦',  sym2: '☽' },
-    'spiritualites':  { cls: 'theme-religions',      sym1: '✦',  sym2: '☽' },
-    'islam':          { cls: 'theme-islam',          sym1: '☽',  sym2: '✦' },
-    'christianisme':  { cls: 'theme-christianisme',  sym1: '✝',  sym2: '☀' },
-    'orthodoxe':      { cls: 'theme-christianisme',  sym1: '☩',  sym2: '✝' },
-    'théologie':      { cls: 'theme-christianisme',  sym1: '✝',  sym2: '☩' },
-    'theologie':      { cls: 'theme-christianisme',  sym1: '✝',  sym2: '☩' },
-    'politique':      { cls: 'theme-politique',      sym1: '⚖',  sym2: '▲' },
-    'idéologies':     { cls: 'theme-politique',      sym1: '⚖',  sym2: '▲' },
-    'ideologies':     { cls: 'theme-politique',      sym1: '⚖',  sym2: '▲' },
-    'sociologie':     { cls: 'theme-sociologie',     sym1: '◎',  sym2: '≋' },
-    'géopolitique':   { cls: 'theme-sociologie',     sym1: '🌐', sym2: '◎' },
-    'geopolitique':   { cls: 'theme-sociologie',     sym1: '🌐', sym2: '◎' },
-    'relations':      { cls: 'theme-sociologie',     sym1: '◎',  sym2: '≋' },
-    'livres':         { cls: 'theme-livres',         sym1: '📖', sym2: '§' },
-    'communication':  { cls: 'theme-communication',  sym1: '◈',  sym2: '»' },
-    'rhétorique':     { cls: 'theme-communication',  sym1: '◈',  sym2: '»' },
-    'débat':          { cls: 'theme-communication',  sym1: '◈',  sym2: '»' },
-    'sciences':       { cls: 'theme-sciences',       sym1: '⚛',  sym2: '∿' },
-    'psychologie':    { cls: 'theme-psychologie',    sym1: '◑',  sym2: '∿' },
-    'économie':       { cls: 'theme-economie',       sym1: '◈',  sym2: '∑' },
-    'economie':       { cls: 'theme-economie',       sym1: '◈',  sym2: '∑' },
-    'finance':        { cls: 'theme-economie',       sym1: '∑',  sym2: '◈' },
-    'développement':  { cls: 'theme-developpement',  sym1: '◆',  sym2: '→' },
-    'developpement':  { cls: 'theme-developpement',  sym1: '◆',  sym2: '→' },
-    'culture':        { cls: 'theme-culture',        sym1: '✧',  sym2: '◇' },
-    'humanités':      { cls: 'theme-culture',        sym1: '✧',  sym2: '◇' },
+    'philosophie':   { cls: 'theme-philosophie',   svgId: 'svg-philosophie' },
+    'metaphysique':  { cls: 'theme-philosophie',   svgId: 'svg-philosophie' },
+    'antique':       { cls: 'theme-philosophie',   svgId: 'svg-philosophie' },
+    'islam':         { cls: 'theme-islam',         svgId: 'svg-islam' },
+    'christianisme': { cls: 'theme-christianisme', svgId: 'svg-christianisme' },
+    'orthodoxe':     { cls: 'theme-christianisme', svgId: 'svg-christianisme' },
+    'theologie':     { cls: 'theme-christianisme', svgId: 'svg-christianisme' },
+    'religions':     { cls: 'theme-religions',     svgId: 'svg-religions' },
+    'spiritualite':  { cls: 'theme-religions',     svgId: 'svg-religions' },
+    'politique':     { cls: 'theme-politique',     svgId: 'svg-politique' },
+    'ideologies':    { cls: 'theme-politique',     svgId: 'svg-politique' },
+    'sociologie':    { cls: 'theme-sociologie',    svgId: 'svg-sociologie' },
+    'geopolitique':  { cls: 'theme-sociologie',    svgId: 'svg-sociologie' },
+    'relations':     { cls: 'theme-sociologie',    svgId: 'svg-sociologie' },
+    'livres':        { cls: 'theme-livres',        svgId: 'svg-livres' },
+    'sciences':      { cls: 'theme-sciences',      svgId: 'svg-sciences' },
+    'psychologie':   { cls: 'theme-psychologie',   svgId: 'svg-psychologie' },
+    'economie':      { cls: 'theme-economie',      svgId: 'svg-economie' },
+    'finance':       { cls: 'theme-economie',      svgId: 'svg-economie' },
+    'communication': { cls: 'theme-communication', svgId: 'svg-communication' },
+    'rhetorique':    { cls: 'theme-communication', svgId: 'svg-communication' },
+    'debat':         { cls: 'theme-communication', svgId: 'svg-communication' },
+    'developpement': { cls: 'theme-developpement', svgId: 'svg-developpement' },
+    'culture':       { cls: 'theme-culture',       svgId: 'svg-culture' },
+    'humanites':     { cls: 'theme-culture',       svgId: 'svg-culture' },
+  };
+
+  const SVG_BG = {
+    'svg-islam': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+      <g opacity="0.08" fill="#4caf82">
+        <ellipse cx="720" cy="680" rx="130" ry="100"/>
+        <rect x="656" y="680" width="128" height="150"/>
+        <rect x="520" y="420" width="32" height="200"/><ellipse cx="536" cy="420" rx="16" ry="28"/>
+        <polygon points="520,420 552,420 536,370" fill="#4caf82"/>
+        <rect x="888" y="420" width="32" height="200"/><ellipse cx="904" cy="420" rx="16" ry="28"/>
+        <polygon points="888,420 920,420 904,370" fill="#4caf82"/>
+      </g>
+      <g opacity="0.1" transform="translate(1150,120)">
+        <path d="M0,0 A50,50 0 1,1 38,38 A35,35 0 1,0 0,0 Z" fill="#4caf82" transform="rotate(-30)"/>
+        <polygon points="70,-12 74,0 86,0 76,8 80,20 70,12 60,20 64,8 54,0 66,0" fill="#4caf82" transform="translate(12,12)"/>
+      </g>
+      <g opacity="0.035" stroke="#4caf82" stroke-width="1" fill="none" transform="translate(60,40)">
+        <polygon points="60,0 120,104 0,104"/><polygon points="60,21 110,104 10,104"/>
+        <circle cx="60" cy="69" r="35"/>
+      </g>
+      <g opacity="0.025" stroke="#4caf82" stroke-width="0.8" fill="none" transform="translate(1200,550) scale(1.8)">
+        <polygon points="60,0 120,104 0,104"/><polygon points="60,21 110,104 10,104"/>
+      </g>
+    </svg>`,
+
+    'svg-christianisme': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+      <g opacity="0.07" fill="#c8862a">
+        <rect x="620" y="360" width="200" height="450"/>
+        <circle cx="720" cy="360" r="45" fill="none" stroke="#c8862a" stroke-width="4" opacity="0.6"/>
+        <circle cx="720" cy="360" r="25" fill="none" stroke="#c8862a" stroke-width="2" opacity="0.4"/>
+        <rect x="500" y="270" width="85" height="380"/><polygon points="500,270 585,270 542,80" fill="#c8862a"/>
+        <rect x="855" y="270" width="85" height="380"/><polygon points="855,270 940,270 897,80" fill="#c8862a"/>
+        <polygon points="700,360 740,360 720,60" fill="#c8862a"/>
+      </g>
+      <g opacity="0.07" fill="#c8862a" transform="translate(1150,80)">
+        <rect x="-6" y="0" width="12" height="80"/>
+        <rect x="-28" y="22" width="56" height="10"/>
+      </g>
+      <g opacity="0.05" fill="#c8862a" transform="translate(160,600) scale(0.9)">
+        <rect x="-4" y="0" width="8" height="65"/>
+        <rect x="-22" y="14" width="44" height="7"/>
+        <rect x="-14" y="34" width="28" height="6"/>
+      </g>
+      <g opacity="0.025" stroke="#c8862a" stroke-width="1" fill="none">
+        <line x1="720" y1="0" x2="200" y2="900"/>
+        <line x1="720" y1="0" x2="720" y2="900"/>
+        <line x1="720" y1="0" x2="1240" y2="900"/>
+        <line x1="720" y1="0" x2="60" y2="720"/>
+        <line x1="720" y1="0" x2="1380" y2="720"/>
+      </g>
+    </svg>`,
+
+    'svg-philosophie': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+      <g opacity="0.06" fill="#d4a853">
+        <rect x="220" y="270" width="36" height="320"/><rect x="212" y="255" width="52" height="18"/><rect x="212" y="590" width="52" height="18"/>
+        <rect x="340" y="225" width="36" height="370"/><rect x="332" y="208" width="52" height="18"/><rect x="332" y="595" width="52" height="18"/>
+        <rect x="1060" y="225" width="36" height="370"/><rect x="1052" y="208" width="52" height="18"/><rect x="1052" y="595" width="52" height="18"/>
+        <rect x="1180" y="270" width="36" height="320"/><rect x="1172" y="255" width="52" height="18"/><rect x="1172" y="590" width="52" height="18"/>
+      </g>
+      <polyline points="200,590 720,225 1240,590" fill="none" stroke="#d4a853" stroke-width="2" opacity="0.05"/>
+      <text x="1060" y="220" font-size="110" opacity="0.05" fill="#d4a853" font-family="serif">∞</text>
+      <text x="80" y="560" font-size="85" opacity="0.04" fill="#d4a853" font-family="serif">Ω</text>
+      <text x="1240" y="720" font-size="70" opacity="0.04" fill="#d4a853" font-family="serif">φ</text>
+      <circle cx="720" cy="500" r="230" fill="none" stroke="#d4a853" stroke-width="0.8" opacity="0.04"/>
+      <circle cx="720" cy="500" r="150" fill="none" stroke="#d4a853" stroke-width="0.5" opacity="0.03"/>
+    </svg>`,
+
+    'svg-religions': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+      <g opacity="0.055" transform="translate(720,450)" fill="none" stroke="#9b7fd4" stroke-width="1">
+        <circle r="240"/><circle r="190"/><circle r="140"/><circle r="90"/><circle r="40"/>
+        <line x1="-240" y1="0" x2="240" y2="0"/>
+        <line x1="0" y1="-240" x2="0" y2="240"/>
+        <line x1="-170" y1="-170" x2="170" y2="170"/>
+        <line x1="170" y1="-170" x2="-170" y2="170"/>
+        <polygon points="0,-190 165,-95 165,95 0,190 -165,95 -165,-95" stroke-width="0.8" opacity="0.6"/>
+      </g>
+      <g opacity="0.04" fill="#9b7fd4" transform="translate(1200,130) scale(0.7)">
+        <polygon points="60,0 120,104 0,104"/>
+        <polygon points="60,120 0,16 120,16"/>
+      </g>
+      <text x="80" y="780" font-size="130" opacity="0.04" fill="#9b7fd4" font-family="serif">ॐ</text>
+      <g opacity="0.05" fill="#9b7fd4">
+        <circle cx="200" cy="150" r="3"/><circle cx="1250" cy="280" r="2.5"/>
+        <circle cx="1050" cy="720" r="3"/><circle cx="380" cy="620" r="2.5"/>
+        <circle cx="1350" cy="500" r="2"/><circle cx="60" cy="420" r="2"/>
+      </g>
+    </svg>`,
+
+    'svg-politique': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+      <g opacity="0.06" fill="#5b8fd4">
+        <rect x="320" y="500" width="800" height="350"/>
+        <rect x="360" y="405" width="720" height="100"/>
+        <rect x="380" y="405" width="45" height="340"/>
+        <rect x="500" y="405" width="45" height="340"/>
+        <rect x="620" y="405" width="45" height="340"/>
+        <rect x="740" y="405" width="45" height="340"/>
+        <rect x="860" y="405" width="45" height="340"/>
+        <rect x="980" y="405" width="45" height="340"/>
+        <polygon points="320,405 1120,405 720,230"/>
+        <ellipse cx="720" cy="230" rx="65" ry="45"/>
+        <rect x="690" y="170" width="60" height="60"/>
+        <rect x="710" y="120" width="20" height="50"/>
+      </g>
+      <g opacity="0.05" fill="none" stroke="#5b8fd4" stroke-width="2" transform="translate(1250,180)">
+        <line x1="0" y1="0" x2="0" y2="80"/>
+        <line x1="-55" y1="28" x2="55" y2="28"/>
+        <circle cx="-55" cy="42" r="18"/>
+        <circle cx="55" cy="42" r="18"/>
+      </g>
+      <g opacity="0.018" stroke="#5b8fd4" stroke-width="0.5">
+        <line x1="0" y1="225" x2="1440" y2="225"/>
+        <line x1="0" y1="450" x2="1440" y2="450"/>
+        <line x1="0" y1="675" x2="1440" y2="675"/>
+        <line x1="360" y1="0" x2="360" y2="900"/>
+        <line x1="720" y1="0" x2="720" y2="900"/>
+        <line x1="1080" y1="0" x2="1080" y2="900"/>
+      </g>
+    </svg>`,
+
+    'svg-sociologie': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+      <g opacity="0.055" fill="none" stroke="#7eb8c8" stroke-width="1.2" transform="translate(720,450)">
+        <circle r="220"/><ellipse rx="220" ry="80"/><ellipse rx="220" ry="145"/>
+        <ellipse rx="110" ry="220"/><ellipse rx="190" ry="220"/>
+        <line x1="-220" y1="0" x2="220" y2="0"/>
+        <line x1="0" y1="-220" x2="0" y2="220"/>
+      </g>
+      <g opacity="0.05" stroke="#7eb8c8" stroke-width="1" fill="#7eb8c8">
+        <line x1="180" y1="150" x2="360" y2="300"/>
+        <line x1="360" y1="300" x2="220" y2="480"/>
+        <line x1="360" y1="300" x2="580" y2="260"/>
+        <line x1="1100" y1="200" x2="980" y2="380"/>
+        <line x1="980" y1="380" x2="1160" y2="520"/>
+        <circle cx="180" cy="150" r="6"/><circle cx="360" cy="300" r="8"/>
+        <circle cx="220" cy="480" r="5"/><circle cx="580" cy="260" r="6"/>
+        <circle cx="1100" cy="200" r="6"/><circle cx="980" cy="380" r="8"/>
+        <circle cx="1160" cy="520" r="5"/>
+      </g>
+    </svg>`,
+
+    'svg-livres': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+      <g opacity="0.065" fill="#b87c4a">
+        <rect x="60" y="675" width="1320" height="12"/>
+        <rect x="80" y="410" width="26" height="265"/><rect x="78" y="404" width="30" height="8"/>
+        <rect x="115" y="385" width="32" height="290"/><rect x="113" y="378" width="36" height="9"/>
+        <rect x="158" y="430" width="20" height="245"/>
+        <rect x="186" y="370" width="36" height="305"/><rect x="184" y="362" width="40" height="10"/>
+        <rect x="232" y="445" width="22" height="230"/>
+        <rect x="262" y="395" width="28" height="280"/>
+        <rect x="300" y="415" width="22" height="260"/>
+        <rect x="330" y="355" width="40" height="320"/><rect x="328" y="346" width="44" height="11"/>
+        <rect x="950" y="395" width="30" height="280"/>
+        <rect x="990" y="420" width="22" height="255"/>
+        <rect x="1022" y="365" width="36" height="310"/><rect x="1020" y="357" width="40" height="10"/>
+        <rect x="1068" y="440" width="20" height="235"/>
+        <rect x="1096" y="385" width="32" height="290"/>
+        <rect x="1136" y="410" width="26" height="265"/>
+        <rect x="1170" y="375" width="38" height="300"/>
+      </g>
+      <g opacity="0.05" fill="#b87c4a" transform="translate(820,180) rotate(-35) scale(1.4)">
+        <path d="M0,0 Q28,-42 14,-112 Q7,-84 -7,-56 Q0,-28 0,0Z"/>
+        <rect x="-2" y="0" width="4" height="42"/>
+      </g>
+      <g opacity="0.028" stroke="#b87c4a" stroke-width="1.2">
+        <line x1="600" y1="400" x2="900" y2="400"/>
+        <line x1="600" y1="450" x2="930" y2="450"/>
+        <line x1="600" y1="500" x2="880" y2="500"/>
+        <line x1="600" y1="550" x2="910" y2="550"/>
+      </g>
+    </svg>`,
+
+    'svg-sciences': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+      <g opacity="0.06" fill="none" stroke="#48b8d0" stroke-width="1.2" transform="translate(720,450)">
+        <circle r="28" fill="#48b8d0" opacity="0.25"/>
+        <ellipse rx="160" ry="55"/><ellipse rx="160" ry="55" transform="rotate(60)"/>
+        <ellipse rx="160" ry="55" transform="rotate(120)"/>
+        <circle cx="160" cy="0" r="8" fill="#48b8d0"/>
+        <circle cx="-80" cy="138" r="8" fill="#48b8d0"/>
+        <circle cx="-80" cy="-138" r="8" fill="#48b8d0"/>
+      </g>
+      <g opacity="0.045" stroke="#48b8d0" stroke-width="0.8" fill="#48b8d0">
+        <line x1="180" y1="130" x2="320" y2="270"/>
+        <line x1="320" y1="270" x2="520" y2="195"/>
+        <line x1="1050" y1="630" x2="1200" y2="495"/>
+        <line x1="1200" y1="495" x2="1130" y2="360"/>
+        <circle cx="180" cy="130" r="3.5"/><circle cx="320" cy="270" r="3"/>
+        <circle cx="520" cy="195" r="4"/><circle cx="1050" cy="630" r="3"/>
+        <circle cx="1200" cy="495" r="3.5"/><circle cx="1130" cy="360" r="3"/>
+      </g>
+      <text x="1030" y="185" font-size="38" opacity="0.045" fill="#48b8d0" font-family="serif">E=mc²</text>
+      <text x="60" y="800" font-size="30" opacity="0.03" fill="#48b8d0" font-family="serif">∫∞ dx</text>
+    </svg>`,
+
+    'svg-psychologie': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+      <g opacity="0.06" fill="none" stroke="#c87898" stroke-width="2" transform="translate(720,420)">
+        <path d="M-110,0 Q-125,-85 -55,-110 Q0,-140 55,-110 Q125,-85 110,0 Q125,70 70,98 Q28,118 0,112 Q-28,118 -70,98 Q-125,70 -110,0Z"/>
+        <path d="M0,-110 Q14,-55 0,112"/>
+        <path d="M-85,-55 Q-28,-28 -55,28"/>
+        <path d="M85,-55 Q28,-28 55,28"/>
+        <path d="M-98,28 Q-55,14 -70,70"/>
+        <path d="M98,28 Q55,14 70,70"/>
+      </g>
+      <g opacity="0.035" fill="none" stroke="#c87898" stroke-width="1.2">
+        <path d="M100,580 Q180,500 260,580 Q340,660 420,580 Q500,500 580,580 Q660,660 740,580 Q820,500 900,580 Q980,660 1060,580 Q1140,500 1220,580 Q1300,660 1380,580"/>
+        <path d="M100,640 Q196,545 292,640 Q388,735 484,640 Q580,545 676,640 Q772,735 868,640 Q964,545 1060,640 Q1156,735 1252,640 Q1348,545 1380,640"/>
+      </g>
+      <g opacity="0.035" fill="none" stroke="#c87898" stroke-width="1" transform="translate(1240,720)">
+        <path d="M0,0 Q14,-14 0,-28 Q-28,-42 -28,0 Q-28,42 14,42 Q56,42 56,-14 Q56,-70 0,-70"/>
+      </g>
+    </svg>`,
+
+    'svg-economie': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+      <polyline points="60,720 204,630 348,675 492,495 636,540 780,360 924,405 1068,270 1212,315 1380,180" fill="none" stroke="#60b060" stroke-width="2" opacity="0.06"/>
+      <polygon points="60,720 204,630 348,675 492,495 636,540 780,360 924,405 1068,270 1212,315 1380,180 1380,900 60,900" fill="#60b060" opacity="0.025"/>
+      <g opacity="0.018" stroke="#60b060" stroke-width="0.6">
+        <line x1="0" y1="270" x2="1440" y2="270"/><line x1="0" y1="450" x2="1440" y2="450"/>
+        <line x1="0" y1="630" x2="1440" y2="630"/>
+        <line x1="360" y1="0" x2="360" y2="900"/><line x1="720" y1="0" x2="720" y2="900"/>
+        <line x1="1080" y1="0" x2="1080" y2="900"/>
+      </g>
+      <text x="1080" y="270" font-size="140" opacity="0.04" fill="#60b060" font-family="serif">€</text>
+    </svg>`,
+
+    'svg-communication': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+      <g opacity="0.065" fill="#e07840">
+        <rect x="120" y="150" width="280" height="120" rx="18"/>
+        <polygon points="120,270 176,270 140,315"/>
+        <rect x="1040" y="280" width="280" height="120" rx="18" fill="none" stroke="#e07840" stroke-width="2"/>
+        <polygon points="1320,400 1264,400 1300,445" fill="none" stroke="#e07840" stroke-width="2"/>
+      </g>
+      <g opacity="0.04" fill="none" stroke="#e07840" stroke-width="2" transform="translate(720,650)">
+        <path d="M-30,-45 Q-60,0 -30,45"/>
+        <path d="M-52,-75 Q-98,0 -52,75"/>
+        <path d="M30,-45 Q60,0 30,45"/>
+        <path d="M52,-75 Q98,0 52,75"/>
+      </g>
+    </svg>`,
+
+    'svg-developpement': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+      <g opacity="0.05" fill="#d4a030">
+        <polygon points="720,40 810,220 762,220 762,780 678,780 678,220 630,220"/>
+      </g>
+      <g opacity="0.04" fill="none" stroke="#d4a030" stroke-width="1.2" transform="translate(250,680)">
+        <circle r="30"/><circle r="60"/><circle r="90"/><circle r="120"/>
+      </g>
+      <g opacity="0.04" fill="none" stroke="#d4a030" stroke-width="1.2" transform="translate(1220,200)">
+        <circle r="38" fill="#d4a030" opacity="0.2"/>
+        <line x1="0" y1="-58" x2="0" y2="-78"/>
+        <line x1="50" y1="-29" x2="65" y2="-40"/>
+        <line x1="58" y1="20" x2="75" y2="26"/>
+        <line x1="-50" y1="-29" x2="-65" y2="-40"/>
+        <line x1="-58" y1="20" x2="-75" y2="26"/>
+      </g>
+    </svg>`,
+
+    'svg-culture': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+      <g opacity="0.05" fill="none" stroke="#a878d0" stroke-width="2" transform="translate(1130,200) scale(1.4)">
+        <ellipse rx="55" ry="70"/>
+        <ellipse cx="-18" cy="-13" rx="13" ry="9"/>
+        <ellipse cx="18" cy="-13" rx="13" ry="9"/>
+        <path d="M-25,20 Q0,38 25,20"/>
+      </g>
+      <g opacity="0.04" fill="#a878d0" transform="translate(180,580) rotate(-20)">
+        <ellipse rx="65" ry="45"/>
+        <circle cx="25" cy="-26" r="10" fill="#c87898"/>
+        <circle cx="-25" cy="-26" r="10" fill="#5b8fd4"/>
+        <circle cx="45" cy="6" r="9" fill="#4caf82"/>
+        <circle cx="-45" cy="6" r="9" fill="#d4a853"/>
+      </g>
+      <text x="560" y="320" font-size="65" opacity="0.04" fill="#a878d0">♪</text>
+      <text x="780" y="580" font-size="48" opacity="0.03" fill="#a878d0">♫</text>
+    </svg>`,
   };
 
   const ALL_THEME_CLASSES = [...new Set(Object.values(THEMES).map(t => t.cls))];
 
   function applyTheme(pathArr) {
     const body = document.body;
-    const overlay = document.getElementById('themeOverlay');
-    const sym1 = document.getElementById('themeSym1');
-    const sym2 = document.getElementById('themeSym2');
-
-    // Find best matching theme from path
     let theme = null;
+
     for (const part of [...pathArr].reverse()) {
-      const key = part.toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove accents
-        .split(/[\s&\/,]+/)
-        .find(word => THEMES[word] || THEMES[part.toLowerCase()]);
-      
-      // Try full folder name first
-      const fullKey = part.toLowerCase();
-      const matchFull = Object.keys(THEMES).find(k => fullKey.includes(k));
-      if (matchFull) { theme = THEMES[matchFull]; break; }
+      const normalized = part.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const match = Object.keys(THEMES).find(k => normalized.includes(k));
+      if (match) { theme = THEMES[match]; break; }
     }
 
-    // Remove all theme classes
     ALL_THEME_CLASSES.forEach(c => body.classList.remove(c));
+    const overlay = document.getElementById('themeOverlay');
 
     if (theme) {
       body.classList.add(theme.cls);
-      overlay.classList.add('visible');
-      sym1.textContent = theme.sym1 || '';
-      sym2.textContent = theme.sym2 || '';
+      const svg = SVG_BG[theme.svgId] || '';
+      overlay.style.backgroundImage = `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}")`;
+      overlay.style.backgroundSize = 'cover';
+      overlay.style.backgroundPosition = 'center';
+      overlay.style.opacity = '1';
     } else {
-      overlay.classList.remove('visible');
-      sym1.textContent = '';
-      sym2.textContent = '';
+      overlay.style.opacity = '0';
+      overlay.style.backgroundImage = 'none';
     }
   }
-
-  // ─── THEME ENGINE ─────────────────────────────────────────────────────────
 
   // ─── STATE ───────────────────────────────────────────────────────────────
   let fileTree = {};
