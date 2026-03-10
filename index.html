@@ -515,6 +515,210 @@
 
     .lock-box .btn-unlock:hover { opacity: 0.85; }
 
+    /* ── THEME AMBIANCES ─────────────────────────────────────────── */
+    body { transition: background 0.6s ease, color 0.3s ease; }
+
+    /* Overlay de fond thématique */
+    #themeOverlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+      background-size: cover;
+      background-position: center;
+    }
+    #themeOverlay.visible { opacity: 1; }
+
+    header, aside, main { position: relative; z-index: 1; }
+
+    /* Philosophie & Métaphysique — marbre, or antique */
+    body.theme-philosophie {
+      --accent: #d4a853;
+      --border: #3a2e1a;
+      --surface: #18140a;
+      --surface2: #221c0e;
+      --bg: #0e0b06;
+    }
+    body.theme-philosophie #themeOverlay {
+      background: radial-gradient(ellipse at 20% 50%, rgba(180,130,40,0.06) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 20%, rgba(100,80,20,0.05) 0%, transparent 50%);
+    }
+
+    /* Religions & Spiritualités — violet profond, encens */
+    body.theme-religions {
+      --accent: #9b7fd4;
+      --border: #2d1f4a;
+      --surface: #130d1e;
+      --surface2: #1c1230;
+      --bg: #0a0710;
+    }
+    body.theme-religions #themeOverlay {
+      background: radial-gradient(ellipse at 50% 0%, rgba(120,60,180,0.08) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 80%, rgba(80,40,140,0.06) 0%, transparent 50%);
+    }
+
+    /* Islam — vert émeraude, calligraphie */
+    body.theme-islam {
+      --accent: #4caf82;
+      --border: #1a3028;
+      --surface: #0a1a12;
+      --surface2: #0f2318;
+      --bg: #060e0a;
+    }
+    body.theme-islam #themeOverlay {
+      background: radial-gradient(ellipse at 30% 70%, rgba(40,140,80,0.07) 0%, transparent 60%),
+                  radial-gradient(ellipse at 70% 20%, rgba(20,100,50,0.05) 0%, transparent 50%);
+    }
+
+    /* Christianisme / Orthodoxe — or byzantin, rouge profond */
+    body.theme-christianisme {
+      --accent: #c8862a;
+      --border: #3a1a0a;
+      --surface: #150a04;
+      --surface2: #1e1008;
+      --bg: #0a0502;
+    }
+    body.theme-christianisme #themeOverlay {
+      background: radial-gradient(ellipse at 50% 30%, rgba(180,80,20,0.07) 0%, transparent 60%),
+                  radial-gradient(ellipse at 20% 80%, rgba(200,130,40,0.05) 0%, transparent 50%);
+    }
+
+    /* Politique & Idéologies — bleu acier, froid */
+    body.theme-politique {
+      --accent: #5b8fd4;
+      --border: #1a2535;
+      --surface: #0a1018;
+      --surface2: #0f1822;
+      --bg: #060810;
+    }
+    body.theme-politique #themeOverlay {
+      background: radial-gradient(ellipse at 70% 30%, rgba(40,80,160,0.07) 0%, transparent 60%),
+                  radial-gradient(ellipse at 20% 70%, rgba(20,50,120,0.05) 0%, transparent 50%);
+    }
+
+    /* Sociologie & Géopolitique — gris anthracite, carte */
+    body.theme-sociologie {
+      --accent: #7eb8c8;
+      --border: #1a2a30;
+      --surface: #0a1215;
+      --surface2: #0f1c20;
+      --bg: #060a0c;
+    }
+    body.theme-sociologie #themeOverlay {
+      background: radial-gradient(ellipse at 60% 40%, rgba(30,100,130,0.07) 0%, transparent 60%),
+                  radial-gradient(ellipse at 30% 70%, rgba(20,70,90,0.05) 0%, transparent 50%);
+    }
+
+    /* Livres — sépia, bibliothèque */
+    body.theme-livres {
+      --accent: #b87c4a;
+      --border: #2e1e10;
+      --surface: #120a04;
+      --surface2: #1c1008;
+      --bg: #090502;
+    }
+    body.theme-livres #themeOverlay {
+      background: radial-gradient(ellipse at 40% 60%, rgba(150,90,30,0.07) 0%, transparent 60%),
+                  radial-gradient(ellipse at 75% 25%, rgba(100,60,20,0.05) 0%, transparent 50%);
+    }
+
+    /* Communication & Débat — orange vif, dynamique */
+    body.theme-communication {
+      --accent: #e07840;
+      --border: #2e1808;
+      --surface: #120a04;
+      --surface2: #1c1008;
+      --bg: #090502;
+    }
+    body.theme-communication #themeOverlay {
+      background: radial-gradient(ellipse at 60% 40%, rgba(200,80,20,0.07) 0%, transparent 60%),
+                  radial-gradient(ellipse at 20% 70%, rgba(180,60,10,0.05) 0%, transparent 50%);
+    }
+
+    /* Sciences — cyan froid, cosmos */
+    body.theme-sciences {
+      --accent: #48b8d0;
+      --border: #0f2030;
+      --surface: #060e14;
+      --surface2: #0a141e;
+      --bg: #03070a;
+    }
+    body.theme-sciences #themeOverlay {
+      background: radial-gradient(ellipse at 50% 50%, rgba(20,100,150,0.08) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 10%, rgba(10,60,100,0.06) 0%, transparent 50%);
+    }
+
+    /* Psychologie — rose poudré, introspection */
+    body.theme-psychologie {
+      --accent: #c87898;
+      --border: #301520;
+      --surface: #130810;
+      --surface2: #1c1018;
+      --bg: #090508;
+    }
+    body.theme-psychologie #themeOverlay {
+      background: radial-gradient(ellipse at 40% 60%, rgba(160,60,100,0.07) 0%, transparent 60%),
+                  radial-gradient(ellipse at 70% 20%, rgba(120,40,70,0.05) 0%, transparent 50%);
+    }
+
+    /* Économie — vert dollar, graphiques */
+    body.theme-economie {
+      --accent: #60b060;
+      --border: #152515;
+      --surface: #081008;
+      --surface2: #0c180c;
+      --bg: #040804;
+    }
+    body.theme-economie #themeOverlay {
+      background: radial-gradient(ellipse at 60% 50%, rgba(30,120,30,0.07) 0%, transparent 60%),
+                  radial-gradient(ellipse at 25% 25%, rgba(20,80,20,0.05) 0%, transparent 50%);
+    }
+
+    /* Développement personnel — ambre chaud */
+    body.theme-developpement {
+      --accent: #d4a030;
+      --border: #302010;
+      --surface: #120e06;
+      --surface2: #1c1608;
+      --bg: #090702;
+    }
+    body.theme-developpement #themeOverlay {
+      background: radial-gradient(ellipse at 50% 60%, rgba(160,100,10,0.07) 0%, transparent 60%),
+                  radial-gradient(ellipse at 75% 20%, rgba(120,70,5,0.05) 0%, transparent 50%);
+    }
+
+    /* Culture générale — multicolore doux */
+    body.theme-culture {
+      --accent: #a878d0;
+      --border: #251535;
+      --surface: #100a18;
+      --surface2: #180f22;
+      --bg: #080610;
+    }
+    body.theme-culture #themeOverlay {
+      background: radial-gradient(ellipse at 30% 40%, rgba(140,60,180,0.06) 0%, transparent 50%),
+                  radial-gradient(ellipse at 70% 70%, rgba(80,40,140,0.05) 0%, transparent 50%);
+    }
+
+    /* Transition douce sur les cartes */
+    .card { transition: border-color 0.3s, transform 0.15s, background 0.3s; }
+    .folder-view h2 { transition: color 0.4s; }
+
+    /* Symboles thématiques flottants dans le fond */
+    .theme-symbol {
+      position: fixed;
+      font-size: 12rem;
+      opacity: 0.025;
+      pointer-events: none;
+      z-index: 0;
+      user-select: none;
+      transition: opacity 0.8s;
+    }
+    .theme-symbol.s1 { bottom: -2rem; right: -1rem; }
+    .theme-symbol.s2 { top: 30%; left: -2rem; font-size: 7rem; opacity: 0.015; }
+
     /* MOBILE */
     @media (max-width: 680px) {
       .app { flex-direction: column; height: auto; }
@@ -536,6 +740,10 @@
     <button class="btn-unlock" onclick="checkPassword()">Déverrouiller</button>
   </div>
 </div>
+
+<div id="themeOverlay"></div>
+<div class="theme-symbol s1" id="themeSym1"></div>
+<div class="theme-symbol s2" id="themeSym2"></div>
 
 <header>
   <div class="header-left">
@@ -610,6 +818,81 @@
   }
 
   // (auto-unlock handled in INIT section below)
+
+  // ─── THEME ENGINE ─────────────────────────────────────────────────────────
+  const THEMES = {
+    'philosophie':    { cls: 'theme-philosophie',    sym1: '∞',  sym2: '⊕', title: 'Philosophie & Métaphysique' },
+    'métaphysique':   { cls: 'theme-philosophie',    sym1: '∞',  sym2: '⊕' },
+    'metaphysique':   { cls: 'theme-philosophie',    sym1: '∞',  sym2: '⊕' },
+    'antique':        { cls: 'theme-philosophie',    sym1: 'Ω',  sym2: '△' },
+    'religions':      { cls: 'theme-religions',      sym1: '✦',  sym2: '☽' },
+    'spiritualité':   { cls: 'theme-religions',      sym1: '✦',  sym2: '☽' },
+    'spiritualites':  { cls: 'theme-religions',      sym1: '✦',  sym2: '☽' },
+    'islam':          { cls: 'theme-islam',          sym1: '☽',  sym2: '✦' },
+    'christianisme':  { cls: 'theme-christianisme',  sym1: '✝',  sym2: '☀' },
+    'orthodoxe':      { cls: 'theme-christianisme',  sym1: '☩',  sym2: '✝' },
+    'théologie':      { cls: 'theme-christianisme',  sym1: '✝',  sym2: '☩' },
+    'theologie':      { cls: 'theme-christianisme',  sym1: '✝',  sym2: '☩' },
+    'politique':      { cls: 'theme-politique',      sym1: '⚖',  sym2: '▲' },
+    'idéologies':     { cls: 'theme-politique',      sym1: '⚖',  sym2: '▲' },
+    'ideologies':     { cls: 'theme-politique',      sym1: '⚖',  sym2: '▲' },
+    'sociologie':     { cls: 'theme-sociologie',     sym1: '◎',  sym2: '≋' },
+    'géopolitique':   { cls: 'theme-sociologie',     sym1: '🌐', sym2: '◎' },
+    'geopolitique':   { cls: 'theme-sociologie',     sym1: '🌐', sym2: '◎' },
+    'relations':      { cls: 'theme-sociologie',     sym1: '◎',  sym2: '≋' },
+    'livres':         { cls: 'theme-livres',         sym1: '📖', sym2: '§' },
+    'communication':  { cls: 'theme-communication',  sym1: '◈',  sym2: '»' },
+    'rhétorique':     { cls: 'theme-communication',  sym1: '◈',  sym2: '»' },
+    'débat':          { cls: 'theme-communication',  sym1: '◈',  sym2: '»' },
+    'sciences':       { cls: 'theme-sciences',       sym1: '⚛',  sym2: '∿' },
+    'psychologie':    { cls: 'theme-psychologie',    sym1: '◑',  sym2: '∿' },
+    'économie':       { cls: 'theme-economie',       sym1: '◈',  sym2: '∑' },
+    'economie':       { cls: 'theme-economie',       sym1: '◈',  sym2: '∑' },
+    'finance':        { cls: 'theme-economie',       sym1: '∑',  sym2: '◈' },
+    'développement':  { cls: 'theme-developpement',  sym1: '◆',  sym2: '→' },
+    'developpement':  { cls: 'theme-developpement',  sym1: '◆',  sym2: '→' },
+    'culture':        { cls: 'theme-culture',        sym1: '✧',  sym2: '◇' },
+    'humanités':      { cls: 'theme-culture',        sym1: '✧',  sym2: '◇' },
+  };
+
+  const ALL_THEME_CLASSES = [...new Set(Object.values(THEMES).map(t => t.cls))];
+
+  function applyTheme(pathArr) {
+    const body = document.body;
+    const overlay = document.getElementById('themeOverlay');
+    const sym1 = document.getElementById('themeSym1');
+    const sym2 = document.getElementById('themeSym2');
+
+    // Find best matching theme from path
+    let theme = null;
+    for (const part of [...pathArr].reverse()) {
+      const key = part.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove accents
+        .split(/[\s&\/,]+/)
+        .find(word => THEMES[word] || THEMES[part.toLowerCase()]);
+      
+      // Try full folder name first
+      const fullKey = part.toLowerCase();
+      const matchFull = Object.keys(THEMES).find(k => fullKey.includes(k));
+      if (matchFull) { theme = THEMES[matchFull]; break; }
+    }
+
+    // Remove all theme classes
+    ALL_THEME_CLASSES.forEach(c => body.classList.remove(c));
+
+    if (theme) {
+      body.classList.add(theme.cls);
+      overlay.classList.add('visible');
+      sym1.textContent = theme.sym1 || '';
+      sym2.textContent = theme.sym2 || '';
+    } else {
+      overlay.classList.remove('visible');
+      sym1.textContent = '';
+      sym2.textContent = '';
+    }
+  }
+
+  // ─── THEME ENGINE ─────────────────────────────────────────────────────────
 
   // ─── STATE ───────────────────────────────────────────────────────────────
   let fileTree = {};
@@ -817,6 +1100,7 @@
   function showFolder(pathArr) {
     currentPath = pathArr;
     updateBreadcrumb(pathArr);
+    applyTheme(pathArr);
 
     const node = pathArr.length === 0 ? fileTree : getNodeAt(pathArr);
     if (!node) return;
@@ -834,8 +1118,8 @@
       const subNode = node[f];
       const subFolders = Object.keys(subNode).filter(k => k !== '__files').length;
       const subFiles = (subNode.__files || []).length;
-      const pathData = btoa(unescape(encodeURIComponent(JSON.stringify([...pathArr, f]))));
-      html += `<div class="card folder-card" data-path="${pathData}">
+      const pathJson = JSON.stringify([...pathArr, f]);
+      html += `<div class="card folder-card" data-action="folder" data-val="${esc(pathJson)}">
         <div class="card-icon">📂</div>
         <div class="card-name">${esc(f)}</div>
         <div class="card-type">${subFolders} dossier(s) · ${subFiles} PDF</div>
@@ -843,10 +1127,8 @@
     });
 
     files.forEach(({ name: fname, githubPath }) => {
-      const pathData = btoa(unescape(encodeURIComponent(JSON.stringify(pathArr))));
-      const gpData = btoa(unescape(encodeURIComponent(githubPath)));
-      const fnData = btoa(unescape(encodeURIComponent(fname)));
-      html += `<div class="card pdf-card" data-gp="${gpData}" data-fn="${fnData}" data-path="${pathData}">
+      const pathJson = JSON.stringify(pathArr);
+      html += `<div class="card pdf-card" data-action="pdf" data-gp="${esc(githubPath)}" data-fn="${esc(fname)}" data-val="${esc(pathJson)}">
         <div class="card-icon">📄</div>
         <div class="card-name">${esc(fname.replace(/\.pdf$/i, ''))}</div>
         <div class="card-type">PDF</div>
@@ -855,27 +1137,11 @@
 
     html += `</div></div>`;
     document.getElementById('contentArea').innerHTML = html;
-
-    // Attach click events
-    document.querySelectorAll('.folder-card').forEach(card => {
-      card.addEventListener('click', () => {
-        const p = JSON.parse(decodeURIComponent(escape(atob(card.dataset.path))));
-        showFolder(p);
-      });
-    });
-
-    document.querySelectorAll('.pdf-card').forEach(card => {
-      card.addEventListener('click', () => {
-        const gp = decodeURIComponent(escape(atob(card.dataset.gp)));
-        const fn = decodeURIComponent(escape(atob(card.dataset.fn)));
-        const p = JSON.parse(decodeURIComponent(escape(atob(card.dataset.path))));
-        openPDF(gp, fn, p);
-      });
-    });
   }
 
-  window.openPDF = function(githubPath, fname, pathArr) {
+  window.openPDFInternal = window.openPDF = function(githubPath, fname, pathArr) {
     updateBreadcrumb([...pathArr, fname]);
+    applyTheme(pathArr);
     const rawURL = getGitHubRawURL(githubPath);
     const viewerURL = `https://docs.google.com/viewer?url=${encodeURIComponent(rawURL)}&embedded=true`;
     const displayName = fname.replace(/\.pdf$/i, '');
@@ -948,6 +1214,22 @@
   function escAttr(s) {
     return String(s).replace(/'/g, "\\'").replace(/\\/g, '\\\\');
   }
+
+  // ─── EVENT DELEGATION GLOBALE ────────────────────────────────────────────
+  document.getElementById('contentArea').addEventListener('click', function(e) {
+    const card = e.target.closest('[data-action]');
+    if (!card) return;
+    const action = card.dataset.action;
+    if (action === 'folder') {
+      const p = JSON.parse(card.dataset.val);
+      showFolder(p);
+    } else if (action === 'pdf') {
+      const gp = card.dataset.gp;
+      const fn = card.dataset.fn;
+      const p = JSON.parse(card.dataset.val);
+      openPDFInternal(gp, fn, p);
+    }
+  });
 
   // ─── INIT ─────────────────────────────────────────────────────────────────
   // Lance le chargement automatique après déverrouillage
