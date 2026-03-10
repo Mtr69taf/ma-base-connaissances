@@ -1,1829 +1,1239 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ma Base de Connaissances</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet"/>
-  <style>
-    :root {
-      --bg: #0d0d0d;
-      --surface: #141414;
-      --surface2: #1c1c1c;
-      --border: #2a2a2a;
-      --accent: #c8a96e;
-      --accent2: #7eb8c8;
-      --text: #e8e2d9;
-      --text-muted: #6b6560;
-      --text-dim: #a09890;
-      --danger: #c87e7e;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'IBM Plex Sans', sans-serif;
-      font-weight: 300;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* HEADER */
-    header {
-      padding: 2rem 2.5rem 1.5rem;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-
-    .header-left h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(1.6rem, 3vw, 2.2rem);
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      color: var(--text);
-    }
-
-    .header-left p {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      margin-top: 0.3rem;
-      letter-spacing: 0.05em;
-    }
-
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .search-wrap {
-      position: relative;
-    }
-
-    .search-wrap input {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: 'IBM Plex Sans', sans-serif;
-      font-size: 0.82rem;
-      padding: 0.5rem 1rem 0.5rem 2.2rem;
-      border-radius: 4px;
-      width: 220px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .search-wrap input::placeholder { color: var(--text-muted); }
-    .search-wrap input:focus { border-color: var(--accent); }
-
-    .search-wrap svg {
-      position: absolute;
-      left: 0.65rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-      pointer-events: none;
-    }
-
-    /* LAYOUT */
-    .app {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-      height: calc(100vh - 80px);
-    }
-
-    /* SIDEBAR */
-    aside {
-      width: 280px;
-      min-width: 220px;
-      border-right: 1px solid var(--border);
-      overflow-y: auto;
-      padding: 1rem 0;
-      flex-shrink: 0;
-    }
-
-    aside::-webkit-scrollbar { width: 4px; }
-    aside::-webkit-scrollbar-track { background: transparent; }
-    aside::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-    .tree-label {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.65rem;
-      color: var(--text-muted);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      padding: 0 1.2rem 0.5rem;
-    }
-
-    .tree-item {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.38rem 1.2rem;
-      cursor: pointer;
-      transition: background 0.15s;
-      user-select: none;
-      border-left: 2px solid transparent;
-    }
-
-    .tree-item:hover { background: var(--surface2); }
-    .tree-item.active {
-      background: var(--surface2);
-      border-left-color: var(--accent);
-    }
-
-    .tree-item .icon { font-size: 0.85rem; flex-shrink: 0; }
-
-    .tree-item .name {
-      font-size: 0.83rem;
-      color: var(--text-dim);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      flex: 1;
-    }
-
-    .tree-item.folder > .name { color: var(--text); font-weight: 500; }
-    .tree-item.pdf-file > .name { color: var(--text-dim); }
-    .tree-item.pdf-file.active > .name { color: var(--accent); }
-
-    .tree-item .toggle {
-      width: 14px;
-      font-size: 0.6rem;
-      color: var(--text-muted);
-      transition: transform 0.2s;
-      flex-shrink: 0;
-    }
-
-    .tree-item .toggle.open { transform: rotate(90deg); }
-
-    .tree-children { display: none; }
-    .tree-children.open { display: block; }
-
-    /* MAIN */
-    main {
-      flex: 1;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* BREADCRUMB */
-    .breadcrumb {
-      padding: 0.75rem 1.5rem;
-      border-bottom: 1px solid var(--border);
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      flex-wrap: wrap;
-    }
-
-    .breadcrumb span { color: var(--text-dim); cursor: pointer; }
-    .breadcrumb span:hover { color: var(--accent); }
-    .breadcrumb .sep { color: var(--border); }
-    .breadcrumb .current { color: var(--accent); cursor: default; }
-
-    /* CONTENT */
-    .content-area {
-      flex: 1;
-      overflow-y: auto;
-      padding: 2rem 2rem;
-    }
-
-    .content-area::-webkit-scrollbar { width: 4px; }
-    .content-area::-webkit-scrollbar-thumb { background: var(--border); }
-
-    /* FOLDER VIEW */
-    .folder-view h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.6rem;
-      margin-bottom: 0.4rem;
-      color: var(--text);
-    }
-
-    .folder-view .meta {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      margin-bottom: 2rem;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-      gap: 1rem;
-    }
-
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1.1rem 1rem;
-      cursor: pointer;
-      transition: border-color 0.2s, transform 0.15s;
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-    }
-
-    .card:hover {
-      border-color: var(--accent);
-      transform: translateY(-2px);
-    }
-
-    .card .card-icon { font-size: 1.5rem; }
-    .card .card-name {
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: var(--text);
-      word-break: break-word;
-    }
-
-    .card.pdf-card .card-name { color: var(--text-dim); font-weight: 400; }
-    .card .card-type {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.65rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    /* PDF VIEWER */
-    .pdf-viewer {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-
-    .pdf-viewer .pdf-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1rem;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-
-    .pdf-viewer .pdf-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.3rem;
-      color: var(--text);
-    }
-
-    .btn {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.72rem;
-      padding: 0.4rem 0.9rem;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-      background: var(--surface2);
-      color: var(--text-dim);
-      cursor: pointer;
-      transition: all 0.15s;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-    }
-
-    .btn:hover { border-color: var(--accent); color: var(--accent); }
-
-    .btn.primary {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    .pdf-frame-wrap {
-      flex: 1;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow: hidden;
-      background: #1a1a1a;
-      min-height: 500px;
-    }
-
-    .pdf-frame-wrap iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      min-height: 500px;
-    }
-
-    /* WELCOME */
-    .welcome {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      text-align: center;
-      gap: 1rem;
-      padding: 2rem;
-    }
-
-    .welcome .big-icon { font-size: 3rem; opacity: 0.3; }
-
-    .welcome h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.5rem;
-      color: var(--text-dim);
-    }
-
-    .welcome p {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      max-width: 320px;
-      line-height: 1.7;
-    }
-
-    /* UPLOAD ZONE */
-    .upload-section {
-      padding: 1.5rem 2rem;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-
-    .upload-section p {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      flex: 1;
-    }
-
-    .upload-section strong { color: var(--accent); }
-
-    #folderInput { display: none; }
-
-    .drop-zone {
-      border: 2px dashed var(--border);
-      border-radius: 8px;
-      padding: 2rem;
-      text-align: center;
-      cursor: pointer;
-      transition: border-color 0.2s, background 0.2s;
-      margin: 2rem;
-    }
-
-    .drop-zone:hover, .drop-zone.dragover {
-      border-color: var(--accent);
-      background: rgba(200, 169, 110, 0.04);
-    }
-
-    .drop-zone .dz-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
-    .drop-zone h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; margin-bottom: 0.4rem; }
-    .drop-zone p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; }
-    .drop-zone p strong { color: var(--accent); }
-
-    /* SEARCH RESULTS */
-    .search-results {
-      padding: 0.5rem 0;
-    }
-
-    .search-result-item {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.6rem 1rem;
-      cursor: pointer;
-      border-radius: 4px;
-      transition: background 0.15s;
-    }
-
-    .search-result-item:hover { background: var(--surface2); }
-    .search-result-item .sr-name { font-size: 0.85rem; color: var(--text); }
-    .search-result-item .sr-path { font-size: 0.72rem; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; }
-
-    .no-results { text-align: center; padding: 3rem; color: var(--text-muted); font-size: 0.85rem; }
-
-    /* STATUS BAR */
-    .status-bar {
-      padding: 0.4rem 1.5rem;
-      border-top: 1px solid var(--border);
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.65rem;
-      color: var(--text-muted);
-      display: flex;
-      gap: 1.5rem;
-    }
-
-    .status-bar span { display: flex; align-items: center; gap: 0.3rem; }
-    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); display: inline-block; }
-
-    /* PASSWORD SCREEN */
-    #passwordScreen {
-      position: fixed;
-      inset: 0;
-      background: var(--bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      flex-direction: column;
-      gap: 2rem;
-    }
-
-    #passwordScreen.hidden { display: none; }
-
-    .lock-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 2.5rem 2rem;
-      width: 320px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1.2rem;
-      text-align: center;
-    }
-
-    .lock-box .lock-icon { font-size: 2.5rem; }
-
-    .lock-box h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.3rem;
-      color: var(--text);
-    }
-
-    .lock-box p {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    .lock-box input {
-      width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 1.1rem;
-      letter-spacing: 0.3em;
-      padding: 0.7rem 1rem;
-      border-radius: 6px;
-      text-align: center;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .lock-box input:focus { border-color: var(--accent); }
-
-    .lock-box input.error {
-      border-color: var(--danger);
-      animation: shake 0.3s ease;
-    }
-
-    @keyframes shake {
-      0%,100% { transform: translateX(0); }
-      25% { transform: translateX(-6px); }
-      75% { transform: translateX(6px); }
-    }
-
-    .lock-box .error-msg {
-      font-size: 0.75rem;
-      color: var(--danger);
-      font-family: 'IBM Plex Mono', monospace;
-      min-height: 1rem;
-    }
-
-    .lock-box .btn-unlock {
-      width: 100%;
-      padding: 0.65rem;
-      background: var(--accent);
-      color: #0d0d0d;
-      border: none;
-      border-radius: 6px;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.85rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: opacity 0.15s;
-    }
-
-    .lock-box .btn-unlock:hover { opacity: 0.85; }
-
-    /* ── THEME AMBIANCES ─────────────────────────────────────────── */
-    body { transition: background 0.6s ease, color 0.3s ease; }
-
-    /* Overlay de fond thématique */
-    #themeOverlay {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0;
-      transition: opacity 0.8s ease;
-      background-size: cover;
-      background-position: center;
-    }
-    #themeOverlay.visible { opacity: 1; }
-
-    header, aside, main { position: relative; z-index: 1; }
-
-    /* Philosophie & Métaphysique — marbre, or antique */
-    body.theme-philosophie {
-      --accent: #d4a853;
-      --border: #3a2e1a;
-      --surface: #18140a;
-      --surface2: #221c0e;
-      --bg: #0e0b06;
-    }
-    body.theme-philosophie #themeOverlay {
-      background: radial-gradient(ellipse at 20% 50%, rgba(180,130,40,0.06) 0%, transparent 60%),
-                  radial-gradient(ellipse at 80% 20%, rgba(100,80,20,0.05) 0%, transparent 50%);
-    }
-
-    /* Religions & Spiritualités — violet profond, encens */
-    body.theme-religions {
-      --accent: #9b7fd4;
-      --border: #2d1f4a;
-      --surface: #130d1e;
-      --surface2: #1c1230;
-      --bg: #0a0710;
-    }
-    body.theme-religions #themeOverlay {
-      background: radial-gradient(ellipse at 50% 0%, rgba(120,60,180,0.08) 0%, transparent 60%),
-                  radial-gradient(ellipse at 80% 80%, rgba(80,40,140,0.06) 0%, transparent 50%);
-    }
-
-    /* Islam — vert émeraude, calligraphie */
-    body.theme-islam {
-      --accent: #4caf82;
-      --border: #1a3028;
-      --surface: #0a1a12;
-      --surface2: #0f2318;
-      --bg: #060e0a;
-    }
-    body.theme-islam #themeOverlay {
-      background: radial-gradient(ellipse at 30% 70%, rgba(40,140,80,0.07) 0%, transparent 60%),
-                  radial-gradient(ellipse at 70% 20%, rgba(20,100,50,0.05) 0%, transparent 50%);
-    }
-
-    /* Christianisme / Orthodoxe — or byzantin, rouge profond */
-    body.theme-christianisme {
-      --accent: #c8862a;
-      --border: #3a1a0a;
-      --surface: #150a04;
-      --surface2: #1e1008;
-      --bg: #0a0502;
-    }
-    body.theme-christianisme #themeOverlay {
-      background: radial-gradient(ellipse at 50% 30%, rgba(180,80,20,0.07) 0%, transparent 60%),
-                  radial-gradient(ellipse at 20% 80%, rgba(200,130,40,0.05) 0%, transparent 50%);
-    }
-
-    /* Politique & Idéologies — bleu acier, froid */
-    body.theme-politique {
-      --accent: #5b8fd4;
-      --border: #1a2535;
-      --surface: #0a1018;
-      --surface2: #0f1822;
-      --bg: #060810;
-    }
-    body.theme-politique #themeOverlay {
-      background: radial-gradient(ellipse at 70% 30%, rgba(40,80,160,0.07) 0%, transparent 60%),
-                  radial-gradient(ellipse at 20% 70%, rgba(20,50,120,0.05) 0%, transparent 50%);
-    }
-
-    /* Sociologie & Géopolitique — gris anthracite, carte */
-    body.theme-sociologie {
-      --accent: #7eb8c8;
-      --border: #1a2a30;
-      --surface: #0a1215;
-      --surface2: #0f1c20;
-      --bg: #060a0c;
-    }
-    body.theme-sociologie #themeOverlay {
-      background: radial-gradient(ellipse at 60% 40%, rgba(30,100,130,0.07) 0%, transparent 60%),
-                  radial-gradient(ellipse at 30% 70%, rgba(20,70,90,0.05) 0%, transparent 50%);
-    }
-
-    /* Livres — sépia, bibliothèque */
-    body.theme-livres {
-      --accent: #b87c4a;
-      --border: #2e1e10;
-      --surface: #120a04;
-      --surface2: #1c1008;
-      --bg: #090502;
-    }
-    body.theme-livres #themeOverlay {
-      background: radial-gradient(ellipse at 40% 60%, rgba(150,90,30,0.07) 0%, transparent 60%),
-                  radial-gradient(ellipse at 75% 25%, rgba(100,60,20,0.05) 0%, transparent 50%);
-    }
-
-    /* Communication & Débat — orange vif, dynamique */
-    body.theme-communication {
-      --accent: #e07840;
-      --border: #2e1808;
-      --surface: #120a04;
-      --surface2: #1c1008;
-      --bg: #090502;
-    }
-    body.theme-communication #themeOverlay {
-      background: radial-gradient(ellipse at 60% 40%, rgba(200,80,20,0.07) 0%, transparent 60%),
-                  radial-gradient(ellipse at 20% 70%, rgba(180,60,10,0.05) 0%, transparent 50%);
-    }
-
-    /* Sciences — cyan froid, cosmos */
-    body.theme-sciences {
-      --accent: #48b8d0;
-      --border: #0f2030;
-      --surface: #060e14;
-      --surface2: #0a141e;
-      --bg: #03070a;
-    }
-    body.theme-sciences #themeOverlay {
-      background: radial-gradient(ellipse at 50% 50%, rgba(20,100,150,0.08) 0%, transparent 60%),
-                  radial-gradient(ellipse at 80% 10%, rgba(10,60,100,0.06) 0%, transparent 50%);
-    }
-
-    /* Psychologie — rose poudré, introspection */
-    body.theme-psychologie {
-      --accent: #c87898;
-      --border: #301520;
-      --surface: #130810;
-      --surface2: #1c1018;
-      --bg: #090508;
-    }
-    body.theme-psychologie #themeOverlay {
-      background: radial-gradient(ellipse at 40% 60%, rgba(160,60,100,0.07) 0%, transparent 60%),
-                  radial-gradient(ellipse at 70% 20%, rgba(120,40,70,0.05) 0%, transparent 50%);
-    }
-
-    /* Économie — vert dollar, graphiques */
-    body.theme-economie {
-      --accent: #60b060;
-      --border: #152515;
-      --surface: #081008;
-      --surface2: #0c180c;
-      --bg: #040804;
-    }
-    body.theme-economie #themeOverlay {
-      background: radial-gradient(ellipse at 60% 50%, rgba(30,120,30,0.07) 0%, transparent 60%),
-                  radial-gradient(ellipse at 25% 25%, rgba(20,80,20,0.05) 0%, transparent 50%);
-    }
-
-    /* Développement personnel — ambre chaud */
-    body.theme-developpement {
-      --accent: #d4a030;
-      --border: #302010;
-      --surface: #120e06;
-      --surface2: #1c1608;
-      --bg: #090702;
-    }
-    body.theme-developpement #themeOverlay {
-      background: radial-gradient(ellipse at 50% 60%, rgba(160,100,10,0.07) 0%, transparent 60%),
-                  radial-gradient(ellipse at 75% 20%, rgba(120,70,5,0.05) 0%, transparent 50%);
-    }
-
-    /* Culture générale — multicolore doux */
-    body.theme-culture {
-      --accent: #a878d0;
-      --border: #251535;
-      --surface: #100a18;
-      --surface2: #180f22;
-      --bg: #080610;
-    }
-    body.theme-culture #themeOverlay {
-      background: radial-gradient(ellipse at 30% 40%, rgba(140,60,180,0.06) 0%, transparent 50%),
-                  radial-gradient(ellipse at 70% 70%, rgba(80,40,140,0.05) 0%, transparent 50%);
-    }
-
-    /* Transition douce sur les cartes */
-    .card { transition: border-color 0.3s, transform 0.15s, background 0.3s; }
-    .folder-view h2 { transition: color 0.4s; }
-
-    /* Symboles thématiques flottants dans le fond */
-    .theme-symbol {
-      position: fixed;
-      font-size: 12rem;
-      opacity: 0.025;
-      pointer-events: none;
-      z-index: 0;
-      user-select: none;
-      transition: opacity 0.8s;
-    }
-    .theme-symbol.s1 { bottom: -2rem; right: -1rem; }
-    .theme-symbol.s2 { top: 30%; left: -2rem; font-size: 7rem; opacity: 0.015; }
-
-    /* MOBILE */
-    @media (max-width: 680px) {
-      .app { flex-direction: column; height: auto; }
-      aside { width: 100%; height: 220px; border-right: none; border-bottom: 1px solid var(--border); }
-      main { height: calc(100vh - 220px - 80px); }
-    }
-
-    /* ══════════════════════════════════════════════════════
-       PAGE D'ACCUEIL
-    ══════════════════════════════════════════════════════ */
-    #landingScreen {
-      position: fixed;
-      inset: 0;
-      background: #07050e;
-      z-index: 9998;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      transition: opacity 0.8s ease, transform 0.8s ease;
-    }
-    #landingScreen.fade-out {
-      opacity: 0;
-      pointer-events: none;
-      transform: translateY(-12px);
-    }
-    #landingScreen.hidden { display: none; }
-
-    /* Fond étoilé / particules */
-    .landing-bg {
-      position: absolute;
-      inset: 0;
-      overflow: hidden;
-      pointer-events: none;
-    }
-    .landing-bg::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(ellipse at 20% 30%, rgba(200,130,42,0.07) 0%, transparent 55%),
-        radial-gradient(ellipse at 80% 70%, rgba(120,80,200,0.05) 0%, transparent 55%),
-        radial-gradient(ellipse at 55% 10%, rgba(255,220,120,0.04) 0%, transparent 40%);
-    }
-    .star {
-      position: absolute;
-      border-radius: 50%;
-      background: #fff;
-      animation: twinkle var(--d, 4s) ease-in-out infinite;
-      animation-delay: var(--delay, 0s);
-    }
-    @keyframes twinkle {
-      0%, 100% { opacity: var(--min-op, 0.1); }
-      50%       { opacity: var(--max-op, 0.6); }
-    }
-
-    /* Ligne décorative dorée */
-    .landing-line {
-      position: absolute;
-      top: 0; left: 50%;
-      transform: translateX(-50%);
-      width: 1px;
-      height: 100%;
-      background: linear-gradient(to bottom, transparent 0%, rgba(200,169,110,0.12) 30%, rgba(200,169,110,0.22) 50%, rgba(200,169,110,0.12) 70%, transparent 100%);
-      pointer-events: none;
-    }
-
-    /* Contenu centré */
-    .landing-content {
-      position: relative;
-      z-index: 2;
-      text-align: center;
-      max-width: 680px;
-      padding: 2rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0;
-      animation: landingFadeIn 1.4s ease both;
-    }
-    @keyframes landingFadeIn {
-      from { opacity: 0; transform: translateY(24px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .landing-eyebrow {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.65rem;
-      letter-spacing: 0.28em;
-      text-transform: uppercase;
-      color: var(--accent);
-      opacity: 0.85;
-      margin-bottom: 1.6rem;
-      animation: landingFadeIn 1.4s 0.15s ease both;
-    }
-
-    .landing-title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(2.6rem, 6vw, 4.4rem);
-      font-weight: 300;
-      letter-spacing: 0.02em;
-      color: #f0e8d8;
-      line-height: 1.15;
-      margin-bottom: 0.5rem;
-      animation: landingFadeIn 1.4s 0.25s ease both;
-    }
-    .landing-title em {
-      font-style: italic;
-      color: var(--accent);
-    }
-
-    .landing-ornament {
-      color: var(--accent);
-      font-size: 1.1rem;
-      opacity: 0.6;
-      letter-spacing: 0.5em;
-      margin: 1.4rem 0;
-      animation: landingFadeIn 1.4s 0.4s ease both;
-    }
-
-    .landing-desc {
-      font-family: 'IBM Plex Sans', sans-serif;
-      font-size: 0.9rem;
-      font-weight: 300;
-      color: #8a8078;
-      line-height: 1.85;
-      max-width: 480px;
-      margin-bottom: 2.4rem;
-      animation: landingFadeIn 1.4s 0.5s ease both;
-    }
-
-    /* Citation */
-    .landing-quote {
-      position: relative;
-      max-width: 520px;
-      margin: 0 0 2.8rem;
-      padding: 1.8rem 2rem;
-      border: 1px solid rgba(200,169,110,0.18);
-      border-radius: 2px;
-      background: rgba(200,169,110,0.03);
-      animation: landingFadeIn 1.4s 0.6s ease both;
-    }
-    .landing-quote::before {
-      content: '\201C';
-      position: absolute;
-      top: -0.6rem;
-      left: 1.4rem;
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 3.5rem;
-      color: var(--accent);
-      opacity: 0.5;
-      line-height: 1;
-    }
-    .landing-quote p {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 1.12rem;
-      font-style: italic;
-      font-weight: 300;
-      color: #c8c0b0;
-      line-height: 1.7;
-      margin-bottom: 0.7rem;
-    }
-    .landing-quote cite {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.62rem;
-      letter-spacing: 0.15em;
-      color: var(--accent);
-      opacity: 0.7;
-      font-style: normal;
-      text-transform: uppercase;
-    }
-
-    /* Auteur */
-    .landing-author {
-      display: flex;
-      align-items: center;
-      gap: 0.9rem;
-      margin-bottom: 2.8rem;
-      animation: landingFadeIn 1.4s 0.7s ease both;
-    }
-    .landing-author-icon {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      border: 1px solid rgba(200,169,110,0.35);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1rem;
-      background: rgba(200,169,110,0.06);
-      flex-shrink: 0;
-    }
-    .landing-author-info {
-      text-align: left;
-    }
-    .landing-author-name {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 1rem;
-      font-weight: 600;
-      color: #e0d8c8;
-      letter-spacing: 0.05em;
-    }
-    .landing-author-role {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.6rem;
-      color: var(--accent);
-      opacity: 0.7;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      margin-top: 0.15rem;
-    }
-
-    /* Bouton entrer */
-    .btn-enter {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.75rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: #07050e;
-      background: var(--accent);
-      border: none;
-      padding: 0.85rem 2.8rem;
-      cursor: pointer;
-      border-radius: 2px;
-      transition: opacity 0.2s, transform 0.2s;
-      animation: landingFadeIn 1.4s 0.85s ease both;
-    }
-    .btn-enter:hover {
-      opacity: 0.88;
-      transform: translateY(-1px);
-    }
-    .btn-enter-sub {
-      margin-top: 0.75rem;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.58rem;
-      letter-spacing: 0.12em;
-      color: #4a4540;
-      animation: landingFadeIn 1.4s 1s ease both;
-    }
-
-    /* Pied décoratif */
-    .landing-footer {
-      position: absolute;
-      bottom: 1.8rem;
-      left: 0; right: 0;
-      text-align: center;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.58rem;
-      letter-spacing: 0.12em;
-      color: #2e2a26;
-      text-transform: uppercase;
-    }
-
-    @media (max-width: 680px) {
-      .landing-title { font-size: 2.2rem; }
-      .landing-quote { padding: 1.4rem 1.4rem; }
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Matis — Base de Connaissances</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   VARIABLES & RESET
+═══════════════════════════════════════════════════════════════ */
+:root {
+  --bg:        #07090f;
+  --surface:   #0d1117;
+  --surface2:  #131920;
+  --border:    #1c2530;
+  --border2:   #243040;
+  --accent:    #c8a96e;
+  --text:      #e8edf4;
+  --text-dim:  #8899aa;
+  --text-muted:#4a5a6a;
+  --danger:    #e05c5c;
+
+  /* Theme transitions */
+  --theme-bg1:     #07090f;
+  --theme-bg2:     #0a0d14;
+  --theme-glow:    rgba(200,169,110,0.06);
+  --theme-accent:  #c8a96e;
+  --theme-surface: #0d1117;
+  --theme-border:  #1c2530;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Inter',sans-serif;font-weight:400;
+  display:flex;flex-direction:column;overflow:hidden;
+  transition:background 1.2s ease,color 0.4s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   AMBIENT BACKGROUND — theme-driven canvas layer
+═══════════════════════════════════════════════════════════════ */
+#ambientBg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  opacity:0;transition:opacity 1.4s ease;
+}
+#ambientBg.visible{opacity:1}
+
+/* ═══════════════════════════════════════════════════════════════
+   LANDING PAGE
+═══════════════════════════════════════════════════════════════ */
+#landingScreen{
+  position:fixed;inset:0;background:#030508;z-index:9000;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+  transition:opacity 1s cubic-bezier(0.4,0,0.2,1),transform 1s cubic-bezier(0.4,0,0.2,1);
+}
+#landingScreen.fade-out{opacity:0;transform:scale(1.04);pointer-events:none}
+#landingScreen.hidden{display:none}
+
+/* Stars */
+#stars{position:absolute;inset:0;pointer-events:none}
+.star{position:absolute;border-radius:50%;background:#fff;
+  animation:twinkle var(--d,4s) ease-in-out infinite;animation-delay:var(--dl,0s)}
+@keyframes twinkle{0%,100%{opacity:var(--lo,.05)}50%{opacity:var(--hi,.5)}}
+
+/* Milky way streak */
+.milky{
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  background:linear-gradient(105deg,transparent 30%,rgba(120,140,200,0.025) 50%,transparent 70%);
+  pointer-events:none;
+}
+
+/* Vignette */
+.vignette{
+  position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,0.7) 100%);
+}
+
+/* Earth container */
+.earth-scene{
+  position:absolute;right:-4vw;top:50%;
+  width:62vmin;height:62vmin;
+  transform:translateY(-50%);
+  animation:earthDrift 22s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes earthDrift{
+  0%,100%{transform:translateY(calc(-50% + 0px)) rotate(0.0deg)}
+  50%    {transform:translateY(calc(-50% - 14px)) rotate(0.3deg)}
+}
+#earthCanvas{width:100%;height:100%;border-radius:50%;display:block}
+.earth-corona{
+  position:absolute;inset:-8%;border-radius:50%;pointer-events:none;
+  box-shadow:0 0 60px 12px rgba(50,100,255,0.14),
+             0 0 120px 40px rgba(30,70,200,0.07),
+             0 0 200px 80px rgba(10,30,120,0.04);
+}
+.earth-stars-local{
+  position:absolute;inset:-40%;border-radius:50%;pointer-events:none;
+  background:radial-gradient(ellipse at 60% 40%,rgba(80,120,220,0.06) 0%,transparent 60%);
+}
+
+/* Landing content */
+.landing-content{
+  position:relative;z-index:10;
+  max-width:520px;padding:2.5rem 3rem;
+  display:flex;flex-direction:column;align-items:flex-start;
+}
+.l-eyebrow{
+  font-family:'JetBrains Mono',monospace;font-size:0.6rem;
+  letter-spacing:0.25em;text-transform:uppercase;
+  color:var(--accent);opacity:0.8;margin-bottom:1.4rem;
+  animation:fadeUp 1s 0.1s both;
+}
+.l-title{
+  font-family:'Lora',serif;font-size:clamp(2rem,4vw,3.2rem);
+  font-weight:400;color:#edf2f9;line-height:1.14;margin-bottom:1.5rem;
+  animation:fadeUp 1s 0.2s both;
+}
+.l-title em{font-style:italic;color:var(--accent)}
+.l-line{
+  width:32px;height:1px;background:var(--accent);
+  opacity:0.5;margin-bottom:1.4rem;
+  animation:fadeUp 1s 0.3s both;
+}
+.l-desc{
+  font-size:0.88rem;font-weight:300;color:#5a7090;
+  line-height:1.85;margin-bottom:1.8rem;
+  animation:fadeUp 1s 0.38s both;
+}
+.l-quote{
+  padding:1rem 1.2rem 1rem 1.4rem;
+  border-left:2px solid rgba(200,169,110,0.35);
+  background:rgba(200,169,110,0.03);
+  border-radius:0 6px 6px 0;
+  margin-bottom:2rem;
+  animation:fadeUp 1s 0.46s both;
+}
+.l-quote p{font-family:'Lora',serif;font-size:0.93rem;font-style:italic;color:#7a8ea8;line-height:1.65;margin-bottom:0.35rem}
+.l-quote cite{font-family:'JetBrains Mono',monospace;font-size:0.57rem;letter-spacing:0.14em;color:var(--accent);opacity:0.6;font-style:normal;text-transform:uppercase}
+.l-author{
+  display:flex;align-items:center;gap:0.85rem;margin-bottom:2.2rem;
+  animation:fadeUp 1s 0.54s both;
+}
+.l-avatar{
+  width:34px;height:34px;border-radius:50%;
+  border:1px solid rgba(200,169,110,0.28);
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.85rem;background:rgba(200,169,110,0.05);flex-shrink:0;
+}
+.l-name{font-size:0.86rem;font-weight:500;color:#c0ccd8}
+.l-role{font-family:'JetBrains Mono',monospace;font-size:0.56rem;color:var(--accent);opacity:0.6;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.1rem}
+.l-cta{animation:fadeUp 1s 0.62s both}
+.btn-enter{
+  font-family:'Inter',sans-serif;font-size:0.82rem;font-weight:600;
+  color:#07090f;background:var(--accent);
+  border:none;padding:0.75rem 2rem;cursor:pointer;border-radius:7px;
+  transition:opacity 0.2s,transform 0.2s,box-shadow 0.2s;
+  box-shadow:0 4px 18px rgba(200,169,110,0.2);
+  display:inline-block;
+}
+.btn-enter:hover{opacity:0.88;transform:translateY(-1px);box-shadow:0 6px 26px rgba(200,169,110,0.28)}
+.l-sub{
+  font-family:'JetBrains Mono',monospace;font-size:0.54rem;
+  letter-spacing:0.1em;color:#1e2a38;text-transform:uppercase;margin-top:0.55rem;
+}
+.l-footer{
+  position:absolute;bottom:1.4rem;left:0;right:0;text-align:center;
+  font-family:'JetBrains Mono',monospace;font-size:0.52rem;
+  letter-spacing:0.1em;color:#141e2a;text-transform:uppercase;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══════════════════════════════════════════════════════════════
+   PASSWORD
+═══════════════════════════════════════════════════════════════ */
+#passwordScreen{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  z-index:8000;background:var(--bg);
+}
+#passwordScreen.hidden{display:none}
+.lock-box{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:2.5rem 2rem;width:320px;
+  display:flex;flex-direction:column;align-items:center;gap:1.1rem;text-align:center;
+}
+.lock-box h2{font-family:'Lora',serif;font-size:1.25rem;color:var(--text)}
+.lock-box p{font-size:0.78rem;color:var(--text-muted);line-height:1.6}
+.lock-box input{
+  width:100%;background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);font-family:'JetBrains Mono',monospace;font-size:1.1rem;
+  letter-spacing:0.3em;padding:0.7rem 1rem;border-radius:8px;
+  text-align:center;outline:none;transition:border-color 0.2s;
+}
+.lock-box input:focus{border-color:var(--accent)}
+.lock-box input.error{border-color:var(--danger);animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.lock-box .err-msg{font-size:0.68rem;color:var(--danger);font-family:'JetBrains Mono',monospace;min-height:1rem}
+.btn-unlock{
+  width:100%;padding:0.62rem;background:var(--accent);color:#07090f;
+  border:none;border-radius:8px;font-family:'Inter',sans-serif;
+  font-size:0.82rem;font-weight:600;cursor:pointer;transition:opacity .15s;
+}
+.btn-unlock:hover{opacity:0.85}
+
+/* ═══════════════════════════════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════════════════════════════ */
+#appShell{
+  position:relative;z-index:1;display:flex;flex-direction:column;
+  height:100vh;overflow:hidden;
+  opacity:0;transition:opacity 0.8s ease;
+}
+#appShell.visible{opacity:1}
+
+/* HEADER */
+header{
+  padding:0 2rem;height:54px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);
+  background:rgba(7,9,15,0.8);backdrop-filter:blur(14px);
+  flex-shrink:0;position:relative;z-index:50;
+  transition:background 0.8s ease,border-color 0.8s ease;
+}
+.h-brand{display:flex;align-items:center;gap:0.75rem}
+.h-brand-dot{
+  width:7px;height:7px;border-radius:50%;background:var(--accent);
+  box-shadow:0 0 8px var(--accent);transition:background 0.6s,box-shadow 0.6s;
+}
+.h-brand-name{font-size:0.82rem;font-weight:600;color:var(--text);letter-spacing:-0.01em}
+.h-meta{font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:var(--text-muted);margin-left:1rem}
+.h-right{display:flex;align-items:center;gap:0.6rem}
+.search-wrap{position:relative}
+.search-wrap input{
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);font-family:'Inter',sans-serif;font-size:0.78rem;
+  padding:0.4rem 0.9rem 0.4rem 2rem;border-radius:6px;width:200px;
+  outline:none;transition:border-color 0.2s,width 0.3s;
+}
+.search-wrap input:focus{border-color:var(--accent);width:240px}
+.search-wrap input::placeholder{color:var(--text-muted)}
+.search-wrap svg{position:absolute;left:0.6rem;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none}
+.h-btn{
+  font-family:'JetBrains Mono',monospace;font-size:0.62rem;
+  padding:0.38rem 0.8rem;border-radius:6px;border:1px solid var(--border);
+  background:var(--surface2);color:var(--text-dim);cursor:pointer;
+  transition:all 0.15s;text-decoration:none;display:inline-flex;align-items:center;gap:0.3rem;
+  --text-dim:#6a7d90;
+}
+.h-btn:hover{border-color:var(--accent);color:var(--accent)}
+.h-btn.accent{border-color:var(--accent);color:var(--accent)}
+
+/* APP BODY */
+.app-body{display:flex;flex:1;overflow:hidden;position:relative}
+
+/* SIDEBAR */
+aside{
+  width:260px;min-width:200px;flex-shrink:0;
+  border-right:1px solid var(--border);
+  overflow-y:auto;padding:0.75rem 0;
+  background:rgba(7,9,15,0.7);
+  transition:background 0.8s ease,border-color 0.8s ease;
+}
+aside::-webkit-scrollbar{width:3px}
+aside::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.tree-section{padding:0.5rem 0 0.25rem}
+.tree-label{
+  font-family:'JetBrains Mono',monospace;font-size:0.58rem;
+  color:var(--text-muted);letter-spacing:0.14em;text-transform:uppercase;
+  padding:0 1.1rem 0.5rem;display:block;
+}
+.tree-item{
+  display:flex;align-items:center;gap:0.45rem;
+  padding:0.34rem 1.1rem;cursor:pointer;
+  transition:background 0.12s;user-select:none;
+  border-left:2px solid transparent;
+  position:relative;
+}
+.tree-item:hover{background:var(--surface2)}
+.tree-item.active{background:rgba(200,169,110,0.06);border-left-color:var(--accent)}
+.tree-item .t-icon{font-size:0.75rem;flex-shrink:0;opacity:0.7}
+.tree-item .t-name{font-size:0.78rem;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.tree-item.folder>.t-name{color:var(--text);font-weight:500}
+.tree-item.pdf-file.active>.t-name{color:var(--accent)}
+.tree-item .t-tog{width:12px;font-size:0.5rem;color:var(--text-muted);transition:transform 0.18s;flex-shrink:0}
+.tree-item .t-tog.open{transform:rotate(90deg)}
+.tree-children{display:none}
+.tree-children.open{display:block}
+
+/* MAIN */
+main{flex:1;overflow:hidden;display:flex;flex-direction:column;position:relative}
+
+/* Content transition overlay */
+#contentTransition{
+  position:absolute;inset:0;z-index:20;pointer-events:none;
+  background:var(--bg);opacity:0;transition:opacity 0.3s ease;
+}
+#contentTransition.flash{opacity:1}
+
+/* BREADCRUMB */
+.breadcrumb{
+  padding:0.5rem 1.5rem;border-bottom:1px solid var(--border);
+  font-family:'JetBrains Mono',monospace;font-size:0.62rem;
+  color:var(--text-muted);display:flex;align-items:center;gap:0.35rem;flex-wrap:wrap;
+  flex-shrink:0;transition:border-color 0.6s;
+}
+.breadcrumb span{color:var(--text-dim);cursor:pointer;transition:color 0.15s}
+.breadcrumb span:hover{color:var(--accent)}
+.breadcrumb .bc-sep{color:var(--border2)}
+.breadcrumb .bc-cur{color:var(--accent);cursor:default}
+
+/* CONTENT AREA */
+.content-area{flex:1;overflow-y:auto;padding:2rem 2rem 2rem;position:relative}
+.content-area::-webkit-scrollbar{width:3px}
+.content-area::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* ── THEME BANNER ── */
+.theme-banner{
+  position:relative;overflow:hidden;
+  padding:1.8rem 2rem 1.6rem;margin-bottom:2rem;
+  border-radius:10px;border:1px solid var(--border2);
+  background:linear-gradient(135deg,var(--theme-bg1) 0%,var(--theme-bg2) 100%);
+}
+.theme-banner::before{
+  content:'';position:absolute;inset:0;
+  background:var(--theme-glow);opacity:1;
+  border-radius:inherit;pointer-events:none;
+}
+.theme-banner-symbol{
+  position:absolute;right:1.5rem;top:50%;transform:translateY(-50%);
+  font-size:4rem;opacity:0.06;pointer-events:none;user-select:none;
+  transition:opacity 0.6s;
+}
+.theme-banner-eyebrow{
+  font-family:'JetBrains Mono',monospace;font-size:0.58rem;
+  letter-spacing:0.18em;text-transform:uppercase;
+  color:var(--accent);opacity:0.75;margin-bottom:0.4rem;
+}
+.theme-banner h2{
+  font-family:'Lora',serif;font-size:1.45rem;font-weight:400;
+  color:var(--text);margin-bottom:0.25rem;
+}
+.theme-banner .bm{font-size:0.75rem;color:var(--text-muted)}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:0.8rem}
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;padding:1rem 0.95rem;cursor:pointer;
+  transition:border-color 0.2s,transform 0.16s,background 0.16s,box-shadow 0.2s;
+  display:flex;flex-direction:column;gap:0.5rem;position:relative;overflow:hidden;
+}
+.card::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,var(--theme-glow) 0%,transparent 70%);
+  opacity:0;transition:opacity 0.2s;pointer-events:none;
+}
+.card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,0.3)}
+.card:hover::after{opacity:1}
+.card .c-icon{font-size:1.2rem;transition:transform 0.2s}
+.card:hover .c-icon{transform:scale(1.1)}
+.card .c-name{font-size:0.8rem;font-weight:500;color:var(--text);word-break:break-word;line-height:1.4}
+.card.pdf-card .c-name{color:var(--text-dim);font-weight:400}
+.card .c-meta{font-family:'JetBrains Mono',monospace;font-size:0.57rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em}
+
+/* PDF VIEWER */
+.pdf-viewer{display:flex;flex-direction:column;height:100%}
+.pdf-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:1rem;flex-wrap:wrap;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+.pdf-title{font-family:'Lora',serif;font-size:1.15rem;color:var(--text)}
+.pdf-frame-wrap{flex:1;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#0a0d12;min-height:400px}
+.pdf-frame-wrap iframe{width:100%;height:100%;border:none;min-height:400px}
+
+/* STATUS BAR */
+.status-bar{
+  padding:0.3rem 1.5rem;border-top:1px solid var(--border);
+  font-family:'JetBrains Mono',monospace;font-size:0.57rem;
+  color:var(--text-muted);display:flex;align-items:center;gap:1.5rem;flex-shrink:0;
+  transition:border-color 0.6s;
+}
+.status-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);display:inline-block;box-shadow:0 0 6px var(--accent);flex-shrink:0;transition:background 0.6s,box-shadow 0.6s}
+
+/* SEARCH RESULTS */
+.sr-item{display:flex;align-items:center;gap:0.7rem;padding:0.55rem 0.9rem;cursor:pointer;border-radius:6px;transition:background 0.12s}
+.sr-item:hover{background:var(--surface2)}
+.sr-name{font-size:0.8rem;color:var(--text)}
+.sr-path{font-size:0.65rem;color:var(--text-muted);font-family:'JetBrains Mono',monospace}
+.no-results{text-align:center;padding:3rem;color:var(--text-muted);font-size:0.8rem}
+
+/* DROP ZONE */
+.drop-zone{
+  border:1px dashed var(--border);border-radius:10px;padding:3rem;
+  text-align:center;cursor:pointer;transition:border-color 0.2s,background 0.2s;margin:1rem;
+}
+.drop-zone:hover{border-color:var(--accent);background:rgba(200,169,110,0.02)}
+.drop-zone h3{font-family:'Lora',serif;font-size:1.1rem;margin-bottom:0.4rem}
+.drop-zone p{font-size:0.78rem;color:var(--text-muted);line-height:1.7}
+
+/* ═══════════════════════════════════════════════════════════════
+   THEME PALETTES
+═══════════════════════════════════════════════════════════════ */
+/* Default space-blue */
+body.t-default{
+  --accent:#c8a96e;--bg:#07090f;--surface:#0d1117;--surface2:#131920;
+  --border:#1c2530;--border2:#243040;
+  --theme-bg1:#07090f;--theme-bg2:#0a0d14;
+  --theme-glow:rgba(200,169,110,0.05);
+}
+/* Philosophie — marbre, doré */
+body.t-philosophie{
+  --accent:#d4a84a;--bg:#0c0a04;--surface:#141008;--surface2:#1c1810;
+  --border:#2e2512;--border2:#3a3018;
+  --theme-bg1:#12100a;--theme-bg2:#0c0a06;
+  --theme-glow:rgba(212,168,74,0.06);
+}
+/* Islam — émeraude profond */
+body.t-islam{
+  --accent:#3da874;--bg:#040c08;--surface:#081410;--surface2:#0e1e16;
+  --border:#142a1e;--border2:#1e3e2c;
+  --theme-bg1:#06100a;--theme-bg2:#040c08;
+  --theme-glow:rgba(61,168,116,0.07);
+}
+/* Christianisme — or byzantin, bordeaux */
+body.t-christianisme{
+  --accent:#c8842a;--bg:#0c0604;--surface:#140c06;--surface2:#1e120a;
+  --border:#3a1e0a;--border2:#4a280e;
+  --theme-bg1:#100804;--theme-bg2:#0c0604;
+  --theme-glow:rgba(200,132,42,0.07);
+}
+/* Religions */
+body.t-religions{
+  --accent:#9b7fd4;--bg:#080610;--surface:#100d18;--surface2:#181424;
+  --border:#281e40;--border2:#342850;
+  --theme-bg1:#0c0a16;--theme-bg2:#080610;
+  --theme-glow:rgba(155,127,212,0.06);
+}
+/* Politique — bleu acier */
+body.t-politique{
+  --accent:#5b8fd4;--bg:#04080f;--surface:#080e18;--surface2:#0c1520;
+  --border:#122030;--border2:#1a2e42;
+  --theme-bg1:#060c14;--theme-bg2:#04080f;
+  --theme-glow:rgba(91,143,212,0.07);
+}
+/* Sociologie */
+body.t-sociologie{
+  --accent:#6ab8c8;--bg:#040c10;--surface:#081218;--surface2:#0e1c22;
+  --border:#102430;--border2:#183040;
+  --theme-bg1:#060e14;--theme-bg2:#040c10;
+  --theme-glow:rgba(106,184,200,0.06);
+}
+/* Livres / littérature */
+body.t-livres{
+  --accent:#b8784a;--bg:#0c0804;--surface:#140e08;--surface2:#1c1610;
+  --border:#2e1e10;--border2:#3e2a18;
+  --theme-bg1:#100c08;--theme-bg2:#0c0804;
+  --theme-glow:rgba(184,120,74,0.06);
+}
+/* Sciences */
+body.t-sciences{
+  --accent:#40b8d0;--bg:#030810;--surface:#060e18;--surface2:#0a1422;
+  --border:#0e2030;--border2:#162c40;
+  --theme-bg1:#040c18;--theme-bg2:#030810;
+  --theme-glow:rgba(64,184,208,0.07);
+}
+/* Psychologie */
+body.t-psychologie{
+  --accent:#c07898;--bg:#0c0408;--surface:#160a10;--surface2:#200e18;
+  --border:#301424;--border2:#401e32;
+  --theme-bg1:#120810;--theme-bg2:#0c0408;
+  --theme-glow:rgba(192,120,152,0.06);
+}
+/* Economie */
+body.t-economie{
+  --accent:#58a858;--bg:#040a04;--surface:#081008;--surface2:#0c180c;
+  --border:#142214;--border2:#1e321e;
+  --theme-bg1:#060c06;--theme-bg2:#040a04;
+  --theme-glow:rgba(88,168,88,0.07);
+}
+/* Développement personnel */
+body.t-developpement{
+  --accent:#d0a030;--bg:#0c0a04;--surface:#141008;--surface2:#1c1810;
+  --border:#2e2510;--border2:#3c3018;
+  --theme-bg1:#100e06;--theme-bg2:#0c0a04;
+  --theme-glow:rgba(208,160,48,0.06);
+}
+/* Communication */
+body.t-communication{
+  --accent:#d07040;--bg:#0c0602;--surface:#140c06;--surface2:#1c140c;
+  --border:#2e1c0c;--border2:#3e2818;
+  --theme-bg1:#100a04;--theme-bg2:#0c0602;
+  --theme-glow:rgba(208,112,64,0.07);
+}
+/* Culture */
+body.t-culture{
+  --accent:#a070c8;--bg:#080410;--surface:#100a18;--surface2:#180e22;
+  --border:#241438;--border2:#301e48;
+  --theme-bg1:#0c0814;--theme-bg2:#080410;
+  --theme-glow:rgba(160,112,200,0.06);
+}
+
+/* CSS transitions for theme changes */
+body,header,aside,.status-bar,.breadcrumb,
+.card,.theme-banner{transition:background 0.9s ease,border-color 0.9s ease,color 0.4s ease,box-shadow 0.6s ease}
+.status-dot,.h-brand-dot{transition:background 0.9s,box-shadow 0.9s}
+
+/* ═══════════════════════════════════════════════════════════════
+   AMBIENT CANVAS LAYERS (drawn per theme)
+═══════════════════════════════════════════════════════════════ */
+#ambientCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.6}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════════════════ */
+@media(max-width:680px){
+  .app-body{flex-direction:column}
+  aside{width:100%;height:180px;border-right:none;border-bottom:1px solid var(--border)}
+  .earth-scene{width:80vmin;height:80vmin;right:-25vw;opacity:0.35}
+  .landing-content{padding:2rem 1.5rem}
+  .l-title{font-size:1.9rem}
+}
+</style>
 </head>
-<body>
+<body class="t-default">
 
+<!-- ═══════════════ LANDING ═══════════════ -->
 <div id="landingScreen">
-  <div class="landing-bg" id="landingBg"></div>
-  <div class="landing-line"></div>
+  <div id="stars"></div>
+  <div class="milky"></div>
+  <div class="vignette"></div>
+
+  <div class="earth-scene">
+    <div class="earth-stars-local"></div>
+    <canvas id="earthCanvas"></canvas>
+    <div class="earth-corona"></div>
+  </div>
 
   <div class="landing-content">
-    <div class="landing-eyebrow">Base de Connaissances</div>
-
-    <h1 class="landing-title">Une bibliothèque<br>pour l'<em>esprit</em></h1>
-
-    <div class="landing-ornament">✦ &nbsp; ✦ &nbsp; ✦</div>
-
-    <p class="landing-desc">
-      Un espace de lecture, d'étude et de réflexion rassemblant des documents
-      soigneusement sélectionnés en philosophie, théologie, sciences humaines et bien d'autres domaines.
-    </p>
-
-    <div class="landing-quote">
+    <div class="l-eyebrow">Base de Connaissances Personnelle</div>
+    <h1 class="l-title">Mon Laboratoire<br>de <em>Connaissances</em></h1>
+    <div class="l-line"></div>
+    <p class="l-desc">La trace d'années d'études, de lectures et de pensées rassemblées pour explorer les idées et comprendre le monde.</p>
+    <div class="l-quote">
       <p>Savoir que l'on ne sait rien, c'est le début de la sagesse.</p>
       <cite>— Socrate</cite>
     </div>
-
-    <div class="landing-author">
-      <div class="landing-author-icon">✝</div>
-      <div class="landing-author-info">
-        <div class="landing-author-name">Matis Tafaro</div>
-        <div class="landing-author-role">Chrétien orthodoxe · Curieux du monde</div>
+    <div class="l-author">
+      <div class="l-avatar">✝</div>
+      <div>
+        <div class="l-name">Matis Tafaro</div>
+        <div class="l-role">Chrétien Orthodoxe · Lecteur et Chercheur</div>
       </div>
     </div>
-
-    <button class="btn-enter" onclick="enterSite()">Entrer dans la bibliothèque</button>
-    <div class="btn-enter-sub">Accès protégé par mot de passe</div>
+    <div class="l-cta">
+      <button class="btn-enter" onclick="enterSite()">Commencer à étudier</button>
+      <div class="l-sub">Accès protégé par mot de passe</div>
+    </div>
   </div>
-
-  <div class="landing-footer">Bibliothèque personnelle de Matis Tafaro &nbsp;·&nbsp; Connaissance & Foi</div>
+  <div class="l-footer">Bibliothèque personnelle de Matis Tafaro &nbsp;·&nbsp; Connaissance &amp; Foi</div>
 </div>
 
+<!-- ═══════════════ PASSWORD ═══════════════ -->
 <div id="passwordScreen" class="hidden">
   <div class="lock-box">
-    <div class="lock-icon">🔐</div>
+    <div style="font-size:1.8rem">🔐</div>
     <h2>Ma Base de Connaissances</h2>
     <p>Entrez votre mot de passe pour accéder à vos documents.</p>
-    <input type="password" id="pwdInput" placeholder="••••" maxlength="20"
-      onkeydown="if(event.key==='Enter') checkPassword()"/>
-    <div class="error-msg" id="pwdError"></div>
+    <input type="password" id="pwdInput" placeholder="••••" maxlength="20" onkeydown="if(event.key==='Enter')checkPassword()"/>
+    <div class="err-msg" id="pwdError"></div>
     <button class="btn-unlock" onclick="checkPassword()">Déverrouiller</button>
   </div>
 </div>
 
-<div id="themeOverlay"></div>
-<div class="theme-symbol s1" id="themeSym1"></div>
-<div class="theme-symbol s2" id="themeSym2"></div>
+<!-- ═══════════════ AMBIENT ═══════════════ -->
+<canvas id="ambientCanvas"></canvas>
 
-<header>
-  <div class="header-left">
-    <h1>📚 Ma Base de Connaissances</h1>
-    <p id="headerMeta">Aucun dossier chargé — importez vos fichiers ci-dessous</p>
-  </div>
-  <div class="header-right">
-    <div class="search-wrap">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input type="text" id="searchInput" placeholder="Rechercher un document..." oninput="onSearch(this.value)"/>
+<!-- ═══════════════ APP ═══════════════ -->
+<div id="appShell">
+  <header>
+    <div class="h-brand">
+      <div class="h-brand-dot"></div>
+      <span class="h-brand-name">Ma Base de Connaissances</span>
+      <span class="h-meta" id="headerMeta"></span>
     </div>
-    <button class="btn primary" onclick="document.getElementById('folderInput').click()">
-      ＋ Charger dossier
-    </button>
-    <input type="file" id="folderInput" webkitdirectory multiple accept=".pdf" onchange="loadFiles(this.files)"/>
-  </div>
-</header>
-
-<div class="app">
-  <aside id="sidebar">
-    <div class="tree-label">Structure</div>
-    <div id="treeRoot"></div>
-  </aside>
-
-  <main>
-    <div class="breadcrumb" id="breadcrumb">
-      <span onclick="showWelcome()">🏠 Accueil</span>
-    </div>
-    <div class="content-area" id="contentArea">
-      <div class="drop-zone" id="dropZone">
-        <div class="dz-icon">🗂️</div>
-        <h3>Importez votre clé USB</h3>
-        <p>Cliquez sur <strong>« Charger dossier »</strong> en haut à droite<br/>ou glissez-déposez votre dossier ici.<br/><br/>Vos PDF et leur structure seront chargés automatiquement.</p>
+    <div class="h-right">
+      <div class="search-wrap">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="searchInput" placeholder="Rechercher…" oninput="onSearch(this.value)"/>
       </div>
+      <button class="h-btn accent" onclick="document.getElementById('folderInput').click()">＋ Charger</button>
+      <input type="file" id="folderInput" style="display:none" webkitdirectory multiple accept=".pdf"/>
     </div>
-    <div class="status-bar" id="statusBar">
-      <span><span class="dot"></span> Local — aucune donnée envoyée sur internet</span>
-      <span id="statusCount">0 document(s)</span>
-    </div>
-  </main>
+  </header>
+
+  <div class="app-body">
+    <aside id="sidebar">
+      <div class="tree-section">
+        <span class="tree-label">Navigation</span>
+        <div id="treeRoot"></div>
+      </div>
+    </aside>
+
+    <main>
+      <div id="contentTransition"></div>
+      <div class="breadcrumb" id="breadcrumb">
+        <span onclick="showFolder([])">Accueil</span>
+      </div>
+      <div class="content-area" id="contentArea">
+        <div class="drop-zone">
+          <h3>📂 Importez vos documents</h3>
+          <p>Cliquez sur <strong>« Charger »</strong> en haut à droite pour importer votre dossier.</p>
+        </div>
+      </div>
+      <div class="status-bar">
+        <span class="status-dot"></span>
+        <span>Local — aucune donnée transmise</span>
+        <span id="statusCount">0 document(s)</span>
+      </div>
+    </main>
+  </div>
 </div>
 
 <script>
-  // ─── CONFIG GITHUB ────────────────────────────────────────────────────────
-  const GITHUB_USER = 'Mtr69taf';
-  const GITHUB_REPO = 'ma-base-connaissances';
-  const GITHUB_BRANCH = 'main';
-  const ROOT_FOLDER = 'Clé USB'; // dossier racine sur GitHub
+/* ═══════════════════════════════════════════════════════
+   CONFIG
+═══════════════════════════════════════════════════════ */
+const GITHUB_USER   = 'Mtr69taf';
+const GITHUB_REPO   = 'ma-base-connaissances';
+const GITHUB_BRANCH = 'main';
+const ROOT_FOLDER   = 'Clé USB';
+const HASH = "389c8e08359f04c3e38a7a5d64dbade9ab433c7932568920945433bbd3164533";
 
-  // ─── PASSWORD ─────────────────────────────────────────────────────────────
-  const HASH = "389c8e08359f04c3e38a7a5d64dbade9ab433c7932568920945433bbd3164533"; // SHA-256 of "0169"
+/* ═══════════════════════════════════════════════════════
+   EARTH — PHOTOREALISTIC CANVAS
+═══════════════════════════════════════════════════════ */
+(function() {
+  const canvas = document.getElementById('earthCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W, R, cx, cy, rot = 0, cloudRot = 0;
 
-  async function sha256(str) {
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  const continents = [
+    // North America
+    [[-168,72],[-140,72],[-120,62],[-105,50],[-88,42],[-80,36],[-80,25],[-88,15],[-83,9],[-77,8],[-75,10],[-85,12],[-90,16],[-104,20],[-116,32],[-130,40],[-152,60],[-165,65],[-168,72]],
+    // South America
+    [[-80,12],[-68,6],[-52,-2],[-38,-10],[-38,-24],[-52,-34],[-66,-55],[-74,-52],[-80,-40],[-80,-22],[-76,-8],[-80,12]],
+    // Europe
+    [[-10,36],[4,36],[16,40],[30,44],[36,52],[28,60],[18,66],[8,62],[0,52],[-4,46],[-10,40],[-10,36]],
+    // Africa
+    [[-18,16],[4,10],[20,6],[42,-2],[44,-14],[36,-36],[20,-36],[14,-30],[8,4],[0,6],[-18,16]],
+    // Asia
+    [[36,44],[60,38],[80,28],[100,20],[120,24],[136,36],[148,48],[140,62],[120,68],[90,74],[66,66],[52,56],[36,52],[36,44]],
+    // Australia
+    [[116,-22],[128,-18],[138,-14],[148,-20],[152,-38],[146,-42],[130,-36],[120,-36],[116,-26],[116,-22]],
+    // Greenland
+    [[-44,84],[-18,76],[-18,68],[-44,60],[-56,64],[-56,76],[-44,84]],
+    // Antarctica (partial)
+    [[-180,-70],[-120,-72],[-60,-70],[0,-74],[60,-72],[120,-70],[180,-70],[180,-90],[-180,-90],[-180,-70]],
+  ];
+
+  // Tectonic plate lines (simplified)
+  const plates = [
+    [[-120,60],[−80,42],[−40,36],[0,36]],
+    [[120,24],[140,36],[160,48]],
+    [[60,-10],[36,44]],
+  ];
+
+  function resize() {
+    const wrap = canvas.parentElement;
+    W = wrap.offsetWidth || 500;
+    canvas.width = W; canvas.height = W;
+    R = W * 0.455; cx = W/2; cy = W/2;
   }
 
-  async function checkPassword() {
-    const val = document.getElementById('pwdInput').value;
-    const hash = await sha256(val);
-    if (hash === HASH) {
+  function project(lon, lat, r) {
+    const phi = lat * Math.PI/180;
+    const lam = lon * Math.PI/180 + r;
+    const x = Math.cos(phi)*Math.cos(lam);
+    const y = Math.sin(phi);
+    const z = Math.cos(phi)*Math.sin(lam);
+    return {sx: cx + R*x, sy: cy - R*y, z, x, y};
+  }
+
+  function drawFrame() {
+    ctx.clearRect(0,0,W,W);
+
+    // === OCEAN ===
+    const og = ctx.createRadialGradient(cx-R*0.28,cy-R*0.2,0,cx,cy,R);
+    og.addColorStop(0,  '#1e4d80');
+    og.addColorStop(0.3,'#14366a');
+    og.addColorStop(0.6,'#0a2250');
+    og.addColorStop(0.85,'#061535');
+    og.addColorStop(1,  '#030a20');
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2);
+    ctx.fillStyle = og; ctx.fill();
+
+    // Subtle ocean depth variation
+    ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,R*0.99,0,Math.PI*2); ctx.clip();
+
+    // Deep ocean trenches (darker stripes near plate boundaries)
+    ctx.strokeStyle = 'rgba(2,8,30,0.15)';
+    ctx.lineWidth = 3;
+    for (let lat=-60;lat<=60;lat+=20) {
+      ctx.beginPath(); let f=true;
+      for (let lon=-180;lon<=180;lon+=4) {
+        const p = project(lon,lat,rot);
+        if (p.z<-0.05){f=true;continue}
+        f?ctx.moveTo(p.sx,p.sy):ctx.lineTo(p.sx,p.sy); f=false;
+      }
+      ctx.stroke();
+    }
+
+    // Lat/lon grid — very faint
+    ctx.strokeStyle='rgba(80,140,220,0.045)'; ctx.lineWidth=0.6;
+    for (let lat=-75;lat<=75;lat+=30) {
+      ctx.beginPath(); let f=true;
+      for (let lon=-180;lon<=180;lon+=3) {
+        const p=project(lon,lat,rot);
+        if(p.z<0){f=true;continue}
+        f?ctx.moveTo(p.sx,p.sy):ctx.lineTo(p.sx,p.sy);f=false;
+      }
+      ctx.stroke();
+    }
+    for (let lon=-150;lon<=180;lon+=30) {
+      ctx.beginPath(); let f=true;
+      for (let lat=-80;lat<=80;lat+=2) {
+        const p=project(lon,lat,rot);
+        if(p.z<0){f=true;continue}
+        f?ctx.moveTo(p.sx,p.sy):ctx.lineTo(p.sx,p.sy);f=false;
+      }
+      ctx.stroke();
+    }
+
+    // === CONTINENTS ===
+    continents.forEach(pts=>{
+      let vis=0; pts.forEach(([lo,la])=>{if(project(lo,la,rot).z>-0.05)vis++;});
+      if(vis < pts.length*0.2) return;
+
+      ctx.beginPath();
+      let prev = null;
+      pts.forEach(([lo,la])=>{
+        const p=project(lo,la,rot);
+        if(!prev||p.z<-0.08){ctx.moveTo(p.sx,p.sy);prev=p;return;}
+        ctx.lineTo(p.sx,p.sy); prev=p;
+      });
+      ctx.closePath();
+
+      // Multi-stop land gradient for terrain feel
+      const cg = ctx.createLinearGradient(cx-R,cy-R,cx+R,cy+R);
+      cg.addColorStop(0,  'rgba(52,90,46,0.95)');
+      cg.addColorStop(0.3,'rgba(44,78,40,0.97)');
+      cg.addColorStop(0.6,'rgba(38,68,34,0.98)');
+      cg.addColorStop(1,  'rgba(30,54,26,0.95)');
+      ctx.fillStyle = cg; ctx.fill();
+
+      // Subtle land texture highlight
+      const hg = ctx.createLinearGradient(cx-R*0.5,cy-R*0.5,cx+R*0.2,cy+R*0.2);
+      hg.addColorStop(0,'rgba(100,160,80,0.08)');
+      hg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=hg; ctx.fill();
+
+      // Shoreline
+      ctx.strokeStyle='rgba(80,140,70,0.4)'; ctx.lineWidth=0.7; ctx.stroke();
+    });
+
+    // Desert / arid regions — subtle warm tint overlay
+    [[20,22],[10,28],[105,40],[260,35]].forEach(([lon,lat])=>{
+      const p=project(lon,lat,rot);
+      if(p.z<0.1)return;
+      const dr=ctx.createRadialGradient(p.sx,p.sy,0,p.sx,p.sy,R*0.14);
+      dr.addColorStop(0,'rgba(160,120,50,0.09)');
+      dr.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=dr; ctx.fillRect(0,0,W,W);
+    });
+
+    // Snow caps near poles
+    ctx.fillStyle='rgba(220,235,255,0.65)';
+    [[-178,90],[0,88],[90,86]].forEach(([lon,lat])=>{
+      const p=project(lon,lat,rot);if(p.z<0)return;
+      const sr=ctx.createRadialGradient(p.sx,p.sy,0,p.sx,p.sy,R*0.08);
+      sr.addColorStop(0,'rgba(220,235,255,0.5)');sr.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=sr;ctx.fillRect(0,0,W,W);
+    });
+
+    ctx.restore();
+
+    // === CLOUDS — separate rotation ===
+    ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,R*0.99,0,Math.PI*2); ctx.clip();
+    const cloudPatches = [
+      [-20,50],[120,30],[200,20],[-100,-10],[60,-40],[240,55],[320,10],[-160,38]
+    ];
+    cloudPatches.forEach(([lon,lat])=>{
+      const p=project(lon,lat,cloudRot);
+      if(p.z<0.05)return;
+      const distEdge=Math.hypot(p.sx-cx,p.sy-cy)/R;
+      if(distEdge>0.96)return;
+      const fade=Math.min(1,(0.96-distEdge)/0.2);
+      const cr=ctx.createRadialGradient(p.sx,p.sy,0,p.sx,p.sy,R*0.16);
+      cr.addColorStop(0,`rgba(240,248,255,${0.22*fade})`);
+      cr.addColorStop(0.5,`rgba(220,235,255,${0.1*fade})`);
+      cr.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=cr; ctx.fillRect(0,0,W,W);
+    });
+    ctx.restore();
+
+    // === ATMOSPHERE ===
+    const ag=ctx.createRadialGradient(cx,cy,R*0.93,cx,cy,R*1.10);
+    ag.addColorStop(0,'rgba(40,90,220,0)');
+    ag.addColorStop(0.35,'rgba(50,110,240,0.12)');
+    ag.addColorStop(0.7,'rgba(60,130,255,0.07)');
+    ag.addColorStop(1,'rgba(80,150,255,0)');
+    ctx.beginPath(); ctx.arc(cx,cy,R*1.10,0,Math.PI*2);
+    ctx.fillStyle=ag; ctx.fill();
+
+    // Thin glowing limb
+    const lg=ctx.createRadialGradient(cx,cy,R*0.97,cx,cy,R*1.03);
+    lg.addColorStop(0,'rgba(100,170,255,0)');
+    lg.addColorStop(0.5,'rgba(100,170,255,0.09)');
+    lg.addColorStop(1,'rgba(100,170,255,0)');
+    ctx.beginPath(); ctx.arc(cx,cy,R*1.03,0,Math.PI*2);
+    ctx.fillStyle=lg; ctx.fill();
+
+    // === SPECULAR HIGHLIGHT (sun reflection) ===
+    const sg=ctx.createRadialGradient(cx-R*0.3,cy-R*0.28,0,cx-R*0.1,cy-R*0.1,R*1.05);
+    sg.addColorStop(0,'rgba(200,225,255,0.13)');
+    sg.addColorStop(0.15,'rgba(180,210,255,0.07)');
+    sg.addColorStop(0.4,'rgba(140,180,255,0.02)');
+    sg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2);
+    ctx.fillStyle=sg; ctx.fill();
+
+    // === TERMINATOR SHADOW ===
+    const shg=ctx.createRadialGradient(cx+R*0.4,cy+R*0.05,0,cx+R*0.15,cy*1.02,R*1.05);
+    shg.addColorStop(0,'rgba(0,0,8,0.65)');
+    shg.addColorStop(0.45,'rgba(0,0,5,0.32)');
+    shg.addColorStop(0.75,'rgba(0,0,3,0.10)');
+    shg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2);
+    ctx.fillStyle=shg; ctx.fill();
+
+    // Terminator soft edge
+    const tg=ctx.createLinearGradient(cx+R*0.35,0,cx+R*0.75,0);
+    tg.addColorStop(0,'rgba(0,0,0,0)');
+    tg.addColorStop(0.5,'rgba(0,0,0,0.18)');
+    tg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2);
+    ctx.fillStyle=tg; ctx.fill();
+  }
+
+  function loop() {
+    rot += 0.0008;
+    cloudRot = rot + 0.0003 * performance.now()/1000;
+    drawFrame();
+    requestAnimationFrame(loop);
+  }
+
+  resize(); loop();
+  window.addEventListener('resize', resize);
+})();
+
+/* ═══════════════════════════════════════════════════════
+   STARS
+═══════════════════════════════════════════════════════ */
+(function(){
+  const c=document.getElementById('stars');
+  if(!c)return;
+  for(let i=0;i<160;i++){
+    const s=document.createElement('div');s.className='star';
+    const sz=Math.random()*1.8+0.3;
+    s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${(Math.random()*5+2).toFixed(1)}s;--dl:${(Math.random()*7).toFixed(1)}s;--lo:${(Math.random()*0.05+0.02).toFixed(2)};--hi:${(Math.random()*0.5+0.2).toFixed(2)}`;
+    c.appendChild(s);
+  }
+})();
+
+/* ═══════════════════════════════════════════════════════
+   AMBIENT BACKGROUND CANVAS
+═══════════════════════════════════════════════════════ */
+const ambCtx = document.getElementById('ambientCanvas').getContext('2d');
+let ambW,ambH,ambColor=[200,169,110];
+function resizeAmb(){
+  ambW=ambCtx.canvas.width=window.innerWidth;
+  ambH=ambCtx.canvas.height=window.innerHeight;
+}
+resizeAmb();
+window.addEventListener('resize',resizeAmb);
+
+function drawAmbient(){
+  ambCtx.clearRect(0,0,ambW,ambH);
+  const [r,g,b]=ambColor;
+  // Bottom-left glow
+  const g1=ambCtx.createRadialGradient(ambW*0.1,ambH*0.9,0,ambW*0.1,ambH*0.9,ambW*0.5);
+  g1.addColorStop(0,`rgba(${r},${g},${b},0.04)`);
+  g1.addColorStop(1,'rgba(0,0,0,0)');
+  ambCtx.fillStyle=g1; ambCtx.fillRect(0,0,ambW,ambH);
+  // Top-right subtle
+  const g2=ambCtx.createRadialGradient(ambW*0.85,ambH*0.1,0,ambW*0.85,ambH*0.1,ambW*0.4);
+  g2.addColorStop(0,`rgba(${r},${g},${b},0.025)`);
+  g2.addColorStop(1,'rgba(0,0,0,0)');
+  ambCtx.fillStyle=g2; ambCtx.fillRect(0,0,ambW,ambH);
+}
+drawAmbient();
+
+/* ═══════════════════════════════════════════════════════
+   THEME ENGINE
+═══════════════════════════════════════════════════════ */
+const THEME_MAP = {
+  philosophie:'t-philosophie',metaphysique:'t-philosophie',antique:'t-philosophie',
+  islam:'t-islam',
+  christianisme:'t-christianisme',orthodoxe:'t-christianisme',theologie:'t-christianisme',catholique:'t-christianisme',
+  religions:'t-religions',spiritualite:'t-religions',
+  politique:'t-politique',ideologies:'t-politique',
+  sociologie:'t-sociologie',geopolitique:'t-sociologie',relations:'t-sociologie',
+  livres:'t-livres',litterature:'t-livres',lecture:'t-livres',
+  sciences:'t-sciences',physique:'t-sciences',mathematiques:'t-sciences',biologie:'t-sciences',
+  psychologie:'t-psychologie',psychiatrie:'t-psychologie',
+  economie:'t-economie',finance:'t-economie',
+  communication:'t-communication',rhetorique:'t-communication',debat:'t-communication',
+  developpement:'t-developpement',
+  culture:'t-culture',humanites:'t-culture',art:'t-culture',
+};
+
+const THEME_SYMBOLS = {
+  't-philosophie':'∞','t-islam':'☽','t-christianisme':'✝','t-religions':'⊕',
+  't-politique':'⚖','t-sociologie':'◎','t-livres':'◈','t-sciences':'⬡',
+  't-psychologie':'◑','t-economie':'△','t-developpement':'◉','t-communication':'◈',
+  't-culture':'✦','t-default':'◈',
+};
+const THEME_LABELS = {
+  't-philosophie':'Philosophie','t-islam':'Islam','t-christianisme':'Christianisme',
+  't-religions':'Religions','t-politique':'Politique','t-sociologie':'Sociologie',
+  't-livres':'Bibliothèque','t-sciences':'Sciences','t-psychologie':'Psychologie',
+  't-economie':'Économie','t-developpement':'Développement','t-communication':'Communication',
+  't-culture':'Culture','t-default':'Accueil',
+};
+const THEME_COLORS = {
+  't-default':[200,169,110],'t-philosophie':[212,168,74],'t-islam':[61,168,116],
+  't-christianisme':[200,132,42],'t-religions':[155,127,212],'t-politique':[91,143,212],
+  't-sociologie':[106,184,200],'t-livres':[184,120,74],'t-sciences':[64,184,208],
+  't-psychologie':[192,120,152],'t-economie':[88,168,88],'t-developpement':[208,160,48],
+  't-communication':[208,112,64],'t-culture':[160,112,200],
+};
+
+const ALL_THEMES = [...new Set(Object.values(THEME_MAP)),'t-default'];
+let currentTheme = 't-default';
+
+function applyTheme(pathArr, label='') {
+  let theme = 't-default';
+  const toCheck = [...pathArr, label].reverse();
+  for (const part of toCheck) {
+    const n = part.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const k = Object.keys(THEME_MAP).find(k => n.includes(k));
+    if (k) { theme = THEME_MAP[k]; break; }
+  }
+
+  if (theme === currentTheme) return;
+  currentTheme = theme;
+
+  // Flash transition
+  const overlay = document.getElementById('contentTransition');
+  overlay.classList.add('flash');
+  setTimeout(()=>overlay.classList.remove('flash'), 320);
+
+  // Apply body class
+  ALL_THEMES.forEach(t => document.body.classList.remove(t));
+  document.body.classList.add(theme);
+
+  // Update ambient glow color
+  ambColor = THEME_COLORS[theme] || [200,169,110];
+  drawAmbient();
+}
+
+/* ═══════════════════════════════════════════════════════
+   PASSWORD
+═══════════════════════════════════════════════════════ */
+async function sha256(str){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function checkPassword(){
+  const val=document.getElementById('pwdInput').value;
+  const hash=await sha256(val);
+  if(hash===HASH){
+    document.getElementById('passwordScreen').classList.add('hidden');
+    sessionStorage.setItem('unlocked','1');
+    initAfterUnlock();
+  } else {
+    const i=document.getElementById('pwdInput'),e=document.getElementById('pwdError');
+    i.classList.add('error');e.textContent='Mot de passe incorrect.';
+    setTimeout(()=>{i.classList.remove('error');i.value='';},800);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════ */
+let fileTree={},allFiles=[],currentPath=[];
+
+/* ═══════════════════════════════════════════════════════
+   GITHUB LOADER
+═══════════════════════════════════════════════════════ */
+async function loadFromGitHub(){
+  const area=document.getElementById('contentArea');
+  area.innerHTML=`<div style="display:flex;align-items:center;justify-content:center;height:60%;gap:0.75rem;color:var(--text-muted);font-size:0.8rem;font-family:'JetBrains Mono',monospace">
+    <div style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:twinkle 1s ease-in-out infinite;--d:1s;--lo:0.2;--hi:1"></div>
+    Connexion à GitHub…
+  </div>`;
+  try{
+    const res=await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/git/trees/${GITHUB_BRANCH}?recursive=1`);
+    if(!res.ok)throw new Error('Erreur GitHub '+res.status);
+    const data=await res.json();
+    fileTree={};allFiles=[];
+    data.tree.forEach(item=>{
+      if(item.type!=='blob'||!item.path.toLowerCase().endsWith('.pdf'))return;
+      const prefix=ROOT_FOLDER+'/';
+      if(!item.path.startsWith(prefix))return;
+      const parts=item.path.slice(prefix.length).split('/');
+      let node=fileTree;
+      parts.forEach((p,i)=>{
+        if(i===parts.length-1){if(!node.__files)node.__files=[];node.__files.push({name:p,githubPath:item.path});}
+        else{if(!node[p])node[p]={};node=node[p];}
+      });
+      allFiles.push({name:parts[parts.length-1],path:parts.join(' / '),pathArr:parts,githubPath:item.path});
+    });
+    if(allFiles.length===0)await loadFolderContents(ROOT_FOLDER,[]);
+    renderTree(fileTree,document.getElementById('treeRoot'),[]);
+    updateMeta();showFolder([]);
+  }catch(e){
+    area.innerHTML=`<div style="text-align:center;padding:3rem;color:var(--text-muted)">❌ ${e.message}</div>`;
+  }
+}
+
+async function loadFolderContents(path,pathArr){
+  const res=await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${encodeURIComponent(path)}?ref=${GITHUB_BRANCH}`);
+  if(!res.ok)return;
+  const items=await res.json();
+  for(const item of items){
+    if(item.type==='dir'){
+      const npa=[...pathArr,item.name];let node=fileTree;
+      npa.forEach(p=>{if(!node[p])node[p]={};node=node[p];});
+      await loadFolderContents(item.path,npa);
+    }else if(item.type==='file'&&item.name.toLowerCase().endsWith('.pdf')){
+      let node=fileTree;pathArr.forEach(p=>{node=node[p];});
+      if(!node.__files)node.__files=[];
+      node.__files.push({name:item.name,githubPath:item.path});
+      allFiles.push({name:item.name,path:[...pathArr,item.name].join(' / '),pathArr:[...pathArr,item.name],githubPath:item.path});
+    }
+  }
+}
+
+function getRawURL(gp){
+  return `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${encodeURIComponent(gp).replace(/%2F/g,'/')}`;
+}
+
+function updateMeta(){
+  const f=countFolders(fileTree);
+  document.getElementById('headerMeta').textContent=`— ${allFiles.length} doc · ${f} dossiers`;
+  document.getElementById('statusCount').textContent=`${allFiles.length} document(s)`;
+}
+function countFolders(n,c=0){Object.keys(n).filter(k=>k!=='__files').forEach(k=>{c=countFolders(n[k],c+1)});return c;}
+
+/* ═══════════════════════════════════════════════════════
+   TREE RENDER
+═══════════════════════════════════════════════════════ */
+function renderTree(node,container,pathArr){
+  container.innerHTML='';
+  const folders=Object.keys(node).filter(k=>k!=='__files').sort();
+  const files=node.__files||[];
+  folders.forEach(folder=>{
+    const ip=[...pathArr,folder];
+    const wrap=document.createElement('div');
+    const item=document.createElement('div');
+    item.className='tree-item folder';
+    item.style.paddingLeft=`${1.1+pathArr.length*0.85}rem`;
+    const tog=document.createElement('span');tog.className='t-tog';tog.textContent='▶';
+    const ico=document.createElement('span');ico.className='t-icon';ico.textContent='📁';
+    const nm=document.createElement('span');nm.className='t-name';nm.textContent=folder;
+    item.appendChild(tog);item.appendChild(ico);item.appendChild(nm);
+    const ch=document.createElement('div');ch.className='tree-children';
+    item.addEventListener('click',e=>{
+      e.stopPropagation();const open=ch.classList.contains('open');
+      ch.classList.toggle('open',!open);tog.classList.toggle('open',!open);
+      ico.textContent=open?'📁':'📂';showFolder(ip);
+    });
+    renderTree(node[folder],ch,ip);
+    wrap.appendChild(item);wrap.appendChild(ch);container.appendChild(wrap);
+  });
+  files.forEach(({name:fn,githubPath})=>{
+    const item=document.createElement('div');item.className='tree-item pdf-file';
+    item.style.paddingLeft=`${1.1+pathArr.length*0.85}rem`;
+    const ico=document.createElement('span');ico.className='t-icon';ico.textContent='📄';
+    const nm=document.createElement('span');nm.className='t-name';nm.textContent=fn.replace(/\.pdf$/i,'');
+    item.appendChild(ico);item.appendChild(nm);
+    item.addEventListener('click',e=>{
+      e.stopPropagation();
+      document.querySelectorAll('.tree-item').forEach(el=>el.classList.remove('active'));
+      item.classList.add('active');openPDF(githubPath,fn,pathArr);
+    });
+    container.appendChild(item);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════════ */
+function getNodeAt(pa){let n=fileTree;for(const p of pa){if(n[p])n=n[p];else return null;}return n;}
+
+function showFolder(pathArr){
+  currentPath=pathArr;
+  const label=pathArr.length===0?'Accueil':pathArr[pathArr.length-1];
+  updateBreadcrumb(pathArr);
+  applyTheme(pathArr,label);
+
+  const node=pathArr.length===0?fileTree:getNodeAt(pathArr);
+  if(!node)return;
+  const folders=Object.keys(node).filter(k=>k!=='__files').sort();
+  const files=node.__files||[];
+
+  const themeKey=currentTheme;
+  const sym=THEME_SYMBOLS[themeKey]||'◈';
+  const thLabel=THEME_LABELS[themeKey]||'';
+
+  let html=`<div class="theme-banner">
+    <div class="theme-banner-symbol">${sym}</div>
+    <div class="theme-banner-eyebrow">${pathArr.length===0?'Bibliothèque':thLabel}</div>
+    <h2>${esc(label)}</h2>
+    <div class="bm">${folders.length} dossier(s) &nbsp;·&nbsp; ${files.length} document(s)</div>
+  </div>
+  <div class="grid">`;
+
+  folders.forEach(f=>{
+    const sub=node[f];
+    const sf=Object.keys(sub).filter(k=>k!=='__files').length;
+    const spdf=(sub.__files||[]).length;
+    html+=`<div class="card folder-card" data-action="folder" data-val="${esc(JSON.stringify([...pathArr,f]))}">
+      <div class="c-icon">📂</div>
+      <div class="c-name">${esc(f)}</div>
+      <div class="c-meta">${sf} dossier · ${spdf} PDF</div>
+    </div>`;
+  });
+  files.forEach(({name:fn,githubPath})=>{
+    html+=`<div class="card pdf-card" data-action="pdf" data-gp="${esc(githubPath)}" data-fn="${esc(fn)}" data-val="${esc(JSON.stringify(pathArr))}">
+      <div class="c-icon">📄</div>
+      <div class="c-name">${esc(fn.replace(/\.pdf$/i,''))}</div>
+      <div class="c-meta">PDF</div>
+    </div>`;
+  });
+  html+=`</div>`;
+  document.getElementById('contentArea').innerHTML=html;
+}
+
+window.openPDFInternal=window.openPDF=function(gp,fn,pa){
+  updateBreadcrumb([...pa,fn]);
+  applyTheme(pa,fn);
+  const raw=getRawURL(gp);
+  const vurl=`https://docs.google.com/viewer?url=${encodeURIComponent(raw)}&embedded=true`;
+  document.getElementById('contentArea').innerHTML=`
+    <div class="pdf-viewer">
+      <div class="pdf-header">
+        <div class="pdf-title">${esc(fn.replace(/\.pdf$/i,''))}</div>
+        <a class="h-btn accent" href="${raw}" target="_blank">⬇ Télécharger</a>
+      </div>
+      <div class="pdf-frame-wrap">
+        <iframe src="${vurl}" title="${esc(fn)}"></iframe>
+      </div>
+    </div>`;
+};
+
+/* ═══════════════════════════════════════════════════════
+   BREADCRUMB
+═══════════════════════════════════════════════════════ */
+function updateBreadcrumb(pa){
+  let html=`<span onclick="showFolder([])">Accueil</span>`;
+  pa.forEach((p,i)=>{
+    const sub=pa.slice(0,i+1);
+    html+=`<span class="bc-sep">/</span>`;
+    if(i===pa.length-1)html+=`<span class="bc-cur">${esc(p.replace(/\.pdf$/i,''))}</span>`;
+    else html+=`<span onclick="showFolder(${JSON.stringify(sub)})">${esc(p)}</span>`;
+  });
+  document.getElementById('breadcrumb').innerHTML=html;
+}
+window.showWelcome=function(){showFolder([]);};
+
+/* ═══════════════════════════════════════════════════════
+   SEARCH
+═══════════════════════════════════════════════════════ */
+function onSearch(query){
+  if(!query.trim()){showFolder(currentPath);return;}
+  const q=query.toLowerCase();
+  const r=allFiles.filter(f=>f.name.toLowerCase().includes(q)||f.path.toLowerCase().includes(q));
+  let html=`<div style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--text-muted);margin-bottom:1.2rem;letter-spacing:0.1em">
+    ${r.length} résultat(s) pour « ${esc(query)} »
+  </div>`;
+  if(!r.length)html+=`<div class="no-results">Aucun document trouvé.</div>`;
+  else r.forEach(f=>{
+    html+=`<div class="sr-item" onclick="openPDF('${escAttr(f.githubPath)}','${escAttr(f.name)}',${JSON.stringify(f.pathArr.slice(0,-1))})">
+      <span style="opacity:0.5">📄</span>
+      <div><div class="sr-name">${esc(f.name.replace(/\.pdf$/i,''))}</div><div class="sr-path">${esc(f.path)}</div></div>
+    </div>`;
+  });
+  document.getElementById('contentArea').innerHTML=html;
+  updateBreadcrumb([`Recherche`]);
+}
+
+/* ═══════════════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════════════ */
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function escAttr(s){return String(s).replace(/'/g,"\\'").replace(/\\/g,'\\\\');}
+
+/* Event delegation */
+document.getElementById('contentArea').addEventListener('click',function(e){
+  const card=e.target.closest('[data-action]');if(!card)return;
+  if(card.dataset.action==='folder')showFolder(JSON.parse(card.dataset.val));
+  else if(card.dataset.action==='pdf')openPDFInternal(card.dataset.gp,card.dataset.fn,JSON.parse(card.dataset.val));
+});
+
+/* ═══════════════════════════════════════════════════════
+   LANDING & INIT
+═══════════════════════════════════════════════════════ */
+function enterSite(){
+  const ls=document.getElementById('landingScreen');
+  ls.classList.add('fade-out');
+  setTimeout(()=>{
+    ls.classList.add('hidden');
+    if(sessionStorage.getItem('unlocked')==='1'){
       document.getElementById('passwordScreen').classList.add('hidden');
-      sessionStorage.setItem('unlocked', '1');
       initAfterUnlock();
     } else {
-      const input = document.getElementById('pwdInput');
-      const err = document.getElementById('pwdError');
-      input.classList.add('error');
-      err.textContent = 'Mot de passe incorrect.';
-      setTimeout(() => { input.classList.remove('error'); input.value = ''; }, 800);
+      document.getElementById('passwordScreen').classList.remove('hidden');
     }
-  }
-
-  // (auto-unlock handled in INIT section below)
-
-  // ─── THEME ENGINE ─────────────────────────────────────────────────────────
-  const THEMES = {
-    'philosophie':   { cls: 'theme-philosophie',   svgId: 'svg-philosophie' },
-    'metaphysique':  { cls: 'theme-philosophie',   svgId: 'svg-philosophie' },
-    'antique':       { cls: 'theme-philosophie',   svgId: 'svg-philosophie' },
-    'islam':         { cls: 'theme-islam',         svgId: 'svg-islam' },
-    'christianisme': { cls: 'theme-christianisme', svgId: 'svg-christianisme' },
-    'orthodoxe':     { cls: 'theme-christianisme', svgId: 'svg-christianisme' },
-    'theologie':     { cls: 'theme-christianisme', svgId: 'svg-christianisme' },
-    'religions':     { cls: 'theme-religions',     svgId: 'svg-religions' },
-    'spiritualite':  { cls: 'theme-religions',     svgId: 'svg-religions' },
-    'politique':     { cls: 'theme-politique',     svgId: 'svg-politique' },
-    'ideologies':    { cls: 'theme-politique',     svgId: 'svg-politique' },
-    'sociologie':    { cls: 'theme-sociologie',    svgId: 'svg-sociologie' },
-    'geopolitique':  { cls: 'theme-sociologie',    svgId: 'svg-sociologie' },
-    'relations':     { cls: 'theme-sociologie',    svgId: 'svg-sociologie' },
-    'livres':        { cls: 'theme-livres',        svgId: 'svg-livres' },
-    'sciences':      { cls: 'theme-sciences',      svgId: 'svg-sciences' },
-    'psychologie':   { cls: 'theme-psychologie',   svgId: 'svg-psychologie' },
-    'economie':      { cls: 'theme-economie',      svgId: 'svg-economie' },
-    'finance':       { cls: 'theme-economie',      svgId: 'svg-economie' },
-    'communication': { cls: 'theme-communication', svgId: 'svg-communication' },
-    'rhetorique':    { cls: 'theme-communication', svgId: 'svg-communication' },
-    'debat':         { cls: 'theme-communication', svgId: 'svg-communication' },
-    'developpement': { cls: 'theme-developpement', svgId: 'svg-developpement' },
-    'culture':       { cls: 'theme-culture',       svgId: 'svg-culture' },
-    'humanites':     { cls: 'theme-culture',       svgId: 'svg-culture' },
-  };
-
-  const SVG_BG = {
-    'svg-islam': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-      <g opacity="0.08" fill="#4caf82">
-        <ellipse cx="720" cy="680" rx="130" ry="100"/>
-        <rect x="656" y="680" width="128" height="150"/>
-        <rect x="520" y="420" width="32" height="200"/><ellipse cx="536" cy="420" rx="16" ry="28"/>
-        <polygon points="520,420 552,420 536,370" fill="#4caf82"/>
-        <rect x="888" y="420" width="32" height="200"/><ellipse cx="904" cy="420" rx="16" ry="28"/>
-        <polygon points="888,420 920,420 904,370" fill="#4caf82"/>
-      </g>
-      <g opacity="0.1" transform="translate(1150,120)">
-        <path d="M0,0 A50,50 0 1,1 38,38 A35,35 0 1,0 0,0 Z" fill="#4caf82" transform="rotate(-30)"/>
-        <polygon points="70,-12 74,0 86,0 76,8 80,20 70,12 60,20 64,8 54,0 66,0" fill="#4caf82" transform="translate(12,12)"/>
-      </g>
-      <g opacity="0.035" stroke="#4caf82" stroke-width="1" fill="none" transform="translate(60,40)">
-        <polygon points="60,0 120,104 0,104"/><polygon points="60,21 110,104 10,104"/>
-        <circle cx="60" cy="69" r="35"/>
-      </g>
-      <g opacity="0.025" stroke="#4caf82" stroke-width="0.8" fill="none" transform="translate(1200,550) scale(1.8)">
-        <polygon points="60,0 120,104 0,104"/><polygon points="60,21 110,104 10,104"/>
-      </g>
-    </svg>`,
-
-    'svg-christianisme': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-      <g opacity="0.07" fill="#c8862a">
-        <rect x="620" y="360" width="200" height="450"/>
-        <circle cx="720" cy="360" r="45" fill="none" stroke="#c8862a" stroke-width="4" opacity="0.6"/>
-        <circle cx="720" cy="360" r="25" fill="none" stroke="#c8862a" stroke-width="2" opacity="0.4"/>
-        <rect x="500" y="270" width="85" height="380"/><polygon points="500,270 585,270 542,80" fill="#c8862a"/>
-        <rect x="855" y="270" width="85" height="380"/><polygon points="855,270 940,270 897,80" fill="#c8862a"/>
-        <polygon points="700,360 740,360 720,60" fill="#c8862a"/>
-      </g>
-      <g opacity="0.07" fill="#c8862a" transform="translate(1150,80)">
-        <rect x="-6" y="0" width="12" height="80"/>
-        <rect x="-28" y="22" width="56" height="10"/>
-      </g>
-      <g opacity="0.05" fill="#c8862a" transform="translate(160,600) scale(0.9)">
-        <rect x="-4" y="0" width="8" height="65"/>
-        <rect x="-22" y="14" width="44" height="7"/>
-        <rect x="-14" y="34" width="28" height="6"/>
-      </g>
-      <g opacity="0.025" stroke="#c8862a" stroke-width="1" fill="none">
-        <line x1="720" y1="0" x2="200" y2="900"/>
-        <line x1="720" y1="0" x2="720" y2="900"/>
-        <line x1="720" y1="0" x2="1240" y2="900"/>
-        <line x1="720" y1="0" x2="60" y2="720"/>
-        <line x1="720" y1="0" x2="1380" y2="720"/>
-      </g>
-    </svg>`,
-
-    'svg-philosophie': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-      <g opacity="0.06" fill="#d4a853">
-        <rect x="220" y="270" width="36" height="320"/><rect x="212" y="255" width="52" height="18"/><rect x="212" y="590" width="52" height="18"/>
-        <rect x="340" y="225" width="36" height="370"/><rect x="332" y="208" width="52" height="18"/><rect x="332" y="595" width="52" height="18"/>
-        <rect x="1060" y="225" width="36" height="370"/><rect x="1052" y="208" width="52" height="18"/><rect x="1052" y="595" width="52" height="18"/>
-        <rect x="1180" y="270" width="36" height="320"/><rect x="1172" y="255" width="52" height="18"/><rect x="1172" y="590" width="52" height="18"/>
-      </g>
-      <polyline points="200,590 720,225 1240,590" fill="none" stroke="#d4a853" stroke-width="2" opacity="0.05"/>
-      <text x="1060" y="220" font-size="110" opacity="0.05" fill="#d4a853" font-family="serif">∞</text>
-      <text x="80" y="560" font-size="85" opacity="0.04" fill="#d4a853" font-family="serif">Ω</text>
-      <text x="1240" y="720" font-size="70" opacity="0.04" fill="#d4a853" font-family="serif">φ</text>
-      <circle cx="720" cy="500" r="230" fill="none" stroke="#d4a853" stroke-width="0.8" opacity="0.04"/>
-      <circle cx="720" cy="500" r="150" fill="none" stroke="#d4a853" stroke-width="0.5" opacity="0.03"/>
-    </svg>`,
-
-    'svg-religions': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-      <g opacity="0.055" transform="translate(720,450)" fill="none" stroke="#9b7fd4" stroke-width="1">
-        <circle r="240"/><circle r="190"/><circle r="140"/><circle r="90"/><circle r="40"/>
-        <line x1="-240" y1="0" x2="240" y2="0"/>
-        <line x1="0" y1="-240" x2="0" y2="240"/>
-        <line x1="-170" y1="-170" x2="170" y2="170"/>
-        <line x1="170" y1="-170" x2="-170" y2="170"/>
-        <polygon points="0,-190 165,-95 165,95 0,190 -165,95 -165,-95" stroke-width="0.8" opacity="0.6"/>
-      </g>
-      <g opacity="0.04" fill="#9b7fd4" transform="translate(1200,130) scale(0.7)">
-        <polygon points="60,0 120,104 0,104"/>
-        <polygon points="60,120 0,16 120,16"/>
-      </g>
-      <text x="80" y="780" font-size="130" opacity="0.04" fill="#9b7fd4" font-family="serif">ॐ</text>
-      <g opacity="0.05" fill="#9b7fd4">
-        <circle cx="200" cy="150" r="3"/><circle cx="1250" cy="280" r="2.5"/>
-        <circle cx="1050" cy="720" r="3"/><circle cx="380" cy="620" r="2.5"/>
-        <circle cx="1350" cy="500" r="2"/><circle cx="60" cy="420" r="2"/>
-      </g>
-    </svg>`,
-
-    'svg-politique': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-      <g opacity="0.06" fill="#5b8fd4">
-        <rect x="320" y="500" width="800" height="350"/>
-        <rect x="360" y="405" width="720" height="100"/>
-        <rect x="380" y="405" width="45" height="340"/>
-        <rect x="500" y="405" width="45" height="340"/>
-        <rect x="620" y="405" width="45" height="340"/>
-        <rect x="740" y="405" width="45" height="340"/>
-        <rect x="860" y="405" width="45" height="340"/>
-        <rect x="980" y="405" width="45" height="340"/>
-        <polygon points="320,405 1120,405 720,230"/>
-        <ellipse cx="720" cy="230" rx="65" ry="45"/>
-        <rect x="690" y="170" width="60" height="60"/>
-        <rect x="710" y="120" width="20" height="50"/>
-      </g>
-      <g opacity="0.05" fill="none" stroke="#5b8fd4" stroke-width="2" transform="translate(1250,180)">
-        <line x1="0" y1="0" x2="0" y2="80"/>
-        <line x1="-55" y1="28" x2="55" y2="28"/>
-        <circle cx="-55" cy="42" r="18"/>
-        <circle cx="55" cy="42" r="18"/>
-      </g>
-      <g opacity="0.018" stroke="#5b8fd4" stroke-width="0.5">
-        <line x1="0" y1="225" x2="1440" y2="225"/>
-        <line x1="0" y1="450" x2="1440" y2="450"/>
-        <line x1="0" y1="675" x2="1440" y2="675"/>
-        <line x1="360" y1="0" x2="360" y2="900"/>
-        <line x1="720" y1="0" x2="720" y2="900"/>
-        <line x1="1080" y1="0" x2="1080" y2="900"/>
-      </g>
-    </svg>`,
-
-    'svg-sociologie': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-      <g opacity="0.055" fill="none" stroke="#7eb8c8" stroke-width="1.2" transform="translate(720,450)">
-        <circle r="220"/><ellipse rx="220" ry="80"/><ellipse rx="220" ry="145"/>
-        <ellipse rx="110" ry="220"/><ellipse rx="190" ry="220"/>
-        <line x1="-220" y1="0" x2="220" y2="0"/>
-        <line x1="0" y1="-220" x2="0" y2="220"/>
-      </g>
-      <g opacity="0.05" stroke="#7eb8c8" stroke-width="1" fill="#7eb8c8">
-        <line x1="180" y1="150" x2="360" y2="300"/>
-        <line x1="360" y1="300" x2="220" y2="480"/>
-        <line x1="360" y1="300" x2="580" y2="260"/>
-        <line x1="1100" y1="200" x2="980" y2="380"/>
-        <line x1="980" y1="380" x2="1160" y2="520"/>
-        <circle cx="180" cy="150" r="6"/><circle cx="360" cy="300" r="8"/>
-        <circle cx="220" cy="480" r="5"/><circle cx="580" cy="260" r="6"/>
-        <circle cx="1100" cy="200" r="6"/><circle cx="980" cy="380" r="8"/>
-        <circle cx="1160" cy="520" r="5"/>
-      </g>
-    </svg>`,
-
-    'svg-livres': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-      <g opacity="0.065" fill="#b87c4a">
-        <rect x="60" y="675" width="1320" height="12"/>
-        <rect x="80" y="410" width="26" height="265"/><rect x="78" y="404" width="30" height="8"/>
-        <rect x="115" y="385" width="32" height="290"/><rect x="113" y="378" width="36" height="9"/>
-        <rect x="158" y="430" width="20" height="245"/>
-        <rect x="186" y="370" width="36" height="305"/><rect x="184" y="362" width="40" height="10"/>
-        <rect x="232" y="445" width="22" height="230"/>
-        <rect x="262" y="395" width="28" height="280"/>
-        <rect x="300" y="415" width="22" height="260"/>
-        <rect x="330" y="355" width="40" height="320"/><rect x="328" y="346" width="44" height="11"/>
-        <rect x="950" y="395" width="30" height="280"/>
-        <rect x="990" y="420" width="22" height="255"/>
-        <rect x="1022" y="365" width="36" height="310"/><rect x="1020" y="357" width="40" height="10"/>
-        <rect x="1068" y="440" width="20" height="235"/>
-        <rect x="1096" y="385" width="32" height="290"/>
-        <rect x="1136" y="410" width="26" height="265"/>
-        <rect x="1170" y="375" width="38" height="300"/>
-      </g>
-      <g opacity="0.05" fill="#b87c4a" transform="translate(820,180) rotate(-35) scale(1.4)">
-        <path d="M0,0 Q28,-42 14,-112 Q7,-84 -7,-56 Q0,-28 0,0Z"/>
-        <rect x="-2" y="0" width="4" height="42"/>
-      </g>
-      <g opacity="0.028" stroke="#b87c4a" stroke-width="1.2">
-        <line x1="600" y1="400" x2="900" y2="400"/>
-        <line x1="600" y1="450" x2="930" y2="450"/>
-        <line x1="600" y1="500" x2="880" y2="500"/>
-        <line x1="600" y1="550" x2="910" y2="550"/>
-      </g>
-    </svg>`,
-
-    'svg-sciences': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-      <g opacity="0.06" fill="none" stroke="#48b8d0" stroke-width="1.2" transform="translate(720,450)">
-        <circle r="28" fill="#48b8d0" opacity="0.25"/>
-        <ellipse rx="160" ry="55"/><ellipse rx="160" ry="55" transform="rotate(60)"/>
-        <ellipse rx="160" ry="55" transform="rotate(120)"/>
-        <circle cx="160" cy="0" r="8" fill="#48b8d0"/>
-        <circle cx="-80" cy="138" r="8" fill="#48b8d0"/>
-        <circle cx="-80" cy="-138" r="8" fill="#48b8d0"/>
-      </g>
-      <g opacity="0.045" stroke="#48b8d0" stroke-width="0.8" fill="#48b8d0">
-        <line x1="180" y1="130" x2="320" y2="270"/>
-        <line x1="320" y1="270" x2="520" y2="195"/>
-        <line x1="1050" y1="630" x2="1200" y2="495"/>
-        <line x1="1200" y1="495" x2="1130" y2="360"/>
-        <circle cx="180" cy="130" r="3.5"/><circle cx="320" cy="270" r="3"/>
-        <circle cx="520" cy="195" r="4"/><circle cx="1050" cy="630" r="3"/>
-        <circle cx="1200" cy="495" r="3.5"/><circle cx="1130" cy="360" r="3"/>
-      </g>
-      <text x="1030" y="185" font-size="38" opacity="0.045" fill="#48b8d0" font-family="serif">E=mc²</text>
-      <text x="60" y="800" font-size="30" opacity="0.03" fill="#48b8d0" font-family="serif">∫∞ dx</text>
-    </svg>`,
-
-    'svg-psychologie': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-      <g opacity="0.06" fill="none" stroke="#c87898" stroke-width="2" transform="translate(720,420)">
-        <path d="M-110,0 Q-125,-85 -55,-110 Q0,-140 55,-110 Q125,-85 110,0 Q125,70 70,98 Q28,118 0,112 Q-28,118 -70,98 Q-125,70 -110,0Z"/>
-        <path d="M0,-110 Q14,-55 0,112"/>
-        <path d="M-85,-55 Q-28,-28 -55,28"/>
-        <path d="M85,-55 Q28,-28 55,28"/>
-        <path d="M-98,28 Q-55,14 -70,70"/>
-        <path d="M98,28 Q55,14 70,70"/>
-      </g>
-      <g opacity="0.035" fill="none" stroke="#c87898" stroke-width="1.2">
-        <path d="M100,580 Q180,500 260,580 Q340,660 420,580 Q500,500 580,580 Q660,660 740,580 Q820,500 900,580 Q980,660 1060,580 Q1140,500 1220,580 Q1300,660 1380,580"/>
-        <path d="M100,640 Q196,545 292,640 Q388,735 484,640 Q580,545 676,640 Q772,735 868,640 Q964,545 1060,640 Q1156,735 1252,640 Q1348,545 1380,640"/>
-      </g>
-      <g opacity="0.035" fill="none" stroke="#c87898" stroke-width="1" transform="translate(1240,720)">
-        <path d="M0,0 Q14,-14 0,-28 Q-28,-42 -28,0 Q-28,42 14,42 Q56,42 56,-14 Q56,-70 0,-70"/>
-      </g>
-    </svg>`,
-
-    'svg-economie': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-      <polyline points="60,720 204,630 348,675 492,495 636,540 780,360 924,405 1068,270 1212,315 1380,180" fill="none" stroke="#60b060" stroke-width="2" opacity="0.06"/>
-      <polygon points="60,720 204,630 348,675 492,495 636,540 780,360 924,405 1068,270 1212,315 1380,180 1380,900 60,900" fill="#60b060" opacity="0.025"/>
-      <g opacity="0.018" stroke="#60b060" stroke-width="0.6">
-        <line x1="0" y1="270" x2="1440" y2="270"/><line x1="0" y1="450" x2="1440" y2="450"/>
-        <line x1="0" y1="630" x2="1440" y2="630"/>
-        <line x1="360" y1="0" x2="360" y2="900"/><line x1="720" y1="0" x2="720" y2="900"/>
-        <line x1="1080" y1="0" x2="1080" y2="900"/>
-      </g>
-      <text x="1080" y="270" font-size="140" opacity="0.04" fill="#60b060" font-family="serif">€</text>
-    </svg>`,
-
-    'svg-communication': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-      <g opacity="0.065" fill="#e07840">
-        <rect x="120" y="150" width="280" height="120" rx="18"/>
-        <polygon points="120,270 176,270 140,315"/>
-        <rect x="1040" y="280" width="280" height="120" rx="18" fill="none" stroke="#e07840" stroke-width="2"/>
-        <polygon points="1320,400 1264,400 1300,445" fill="none" stroke="#e07840" stroke-width="2"/>
-      </g>
-      <g opacity="0.04" fill="none" stroke="#e07840" stroke-width="2" transform="translate(720,650)">
-        <path d="M-30,-45 Q-60,0 -30,45"/>
-        <path d="M-52,-75 Q-98,0 -52,75"/>
-        <path d="M30,-45 Q60,0 30,45"/>
-        <path d="M52,-75 Q98,0 52,75"/>
-      </g>
-    </svg>`,
-
-    'svg-developpement': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-      <g opacity="0.05" fill="#d4a030">
-        <polygon points="720,40 810,220 762,220 762,780 678,780 678,220 630,220"/>
-      </g>
-      <g opacity="0.04" fill="none" stroke="#d4a030" stroke-width="1.2" transform="translate(250,680)">
-        <circle r="30"/><circle r="60"/><circle r="90"/><circle r="120"/>
-      </g>
-      <g opacity="0.04" fill="none" stroke="#d4a030" stroke-width="1.2" transform="translate(1220,200)">
-        <circle r="38" fill="#d4a030" opacity="0.2"/>
-        <line x1="0" y1="-58" x2="0" y2="-78"/>
-        <line x1="50" y1="-29" x2="65" y2="-40"/>
-        <line x1="58" y1="20" x2="75" y2="26"/>
-        <line x1="-50" y1="-29" x2="-65" y2="-40"/>
-        <line x1="-58" y1="20" x2="-75" y2="26"/>
-      </g>
-    </svg>`,
-
-    'svg-culture': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-      <g opacity="0.05" fill="none" stroke="#a878d0" stroke-width="2" transform="translate(1130,200) scale(1.4)">
-        <ellipse rx="55" ry="70"/>
-        <ellipse cx="-18" cy="-13" rx="13" ry="9"/>
-        <ellipse cx="18" cy="-13" rx="13" ry="9"/>
-        <path d="M-25,20 Q0,38 25,20"/>
-      </g>
-      <g opacity="0.04" fill="#a878d0" transform="translate(180,580) rotate(-20)">
-        <ellipse rx="65" ry="45"/>
-        <circle cx="25" cy="-26" r="10" fill="#c87898"/>
-        <circle cx="-25" cy="-26" r="10" fill="#5b8fd4"/>
-        <circle cx="45" cy="6" r="9" fill="#4caf82"/>
-        <circle cx="-45" cy="6" r="9" fill="#d4a853"/>
-      </g>
-      <text x="560" y="320" font-size="65" opacity="0.04" fill="#a878d0">♪</text>
-      <text x="780" y="580" font-size="48" opacity="0.03" fill="#a878d0">♫</text>
-    </svg>`,
-  };
-
-  const ALL_THEME_CLASSES = [...new Set(Object.values(THEMES).map(t => t.cls))];
-
-  function applyTheme(pathArr) {
-    const body = document.body;
-    let theme = null;
-
-    for (const part of [...pathArr].reverse()) {
-      const normalized = part.toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      const match = Object.keys(THEMES).find(k => normalized.includes(k));
-      if (match) { theme = THEMES[match]; break; }
-    }
-
-    ALL_THEME_CLASSES.forEach(c => body.classList.remove(c));
-    const overlay = document.getElementById('themeOverlay');
-
-    if (theme) {
-      body.classList.add(theme.cls);
-      const svg = SVG_BG[theme.svgId] || '';
-      overlay.style.backgroundImage = `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}")`;
-      overlay.style.backgroundSize = 'cover';
-      overlay.style.backgroundPosition = 'center';
-      overlay.style.opacity = '1';
-    } else {
-      overlay.style.opacity = '0';
-      overlay.style.backgroundImage = 'none';
-    }
-  }
-
-  // ─── STATE ───────────────────────────────────────────────────────────────
-  let fileTree = {};
-  let allFiles = [];
-  let currentPath = [];
-
-  // ─── LOAD FROM GITHUB API ────────────────────────────────────────────────
-  async function loadFromGitHub() {
-    const area = document.getElementById('contentArea');
-    area.innerHTML = `<div class="welcome"><div class="big-icon">⏳</div><h2>Chargement de vos documents...</h2><p>Connexion à GitHub en cours.</p></div>`;
-
-    try {
-      // Fetch the full git tree recursively
-      const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/git/trees/${GITHUB_BRANCH}?recursive=1`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('Erreur API GitHub : ' + res.status);
-      const data = await res.json();
-
-      // If tree is truncated, warn user
-      if (data.truncated) {
-        console.warn('Arbre GitHub tronqué — certains fichiers peuvent manquer.');
-      }
-
-      fileTree = {};
-      allFiles = [];
-
-      data.tree.forEach(item => {
-        if (item.type !== 'blob') return;
-        if (!item.path.toLowerCase().endsWith('.pdf')) return;
-
-        // Only files inside ROOT_FOLDER
-        const prefix = ROOT_FOLDER + '/';
-        if (!item.path.startsWith(prefix)) return;
-
-        const relative = item.path.slice(prefix.length);
-        const parts = relative.split('/');
-
-        // Build nested tree
-        let node = fileTree;
-        parts.forEach((part, i) => {
-          if (i === parts.length - 1) {
-            if (!node.__files) node.__files = [];
-            node.__files.push({ name: part, githubPath: item.path });
-          } else {
-            if (!node[part]) node[part] = {};
-            node = node[part];
-          }
-        });
-
-        allFiles.push({
-          name: parts[parts.length - 1],
-          path: parts.join(' / '),
-          pathArr: parts,
-          githubPath: item.path
-        });
-      });
-
-      if (allFiles.length === 0) {
-        // Fallback: try fetching subfolders manually
-        await loadFolderContents(ROOT_FOLDER, []);
-      }
-
-      renderTree(fileTree, document.getElementById('treeRoot'), []);
-      updateMeta();
-      showFolder([]);
-
-    } catch (e) {
-      area.innerHTML = `<div class="welcome"><div class="big-icon">❌</div><h2>Erreur de chargement</h2><p>${e.message}</p></div>`;
-    }
-  }
-
-  // Fallback: load folder contents one by one via Contents API
-  async function loadFolderContents(path, pathArr) {
-    const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${encodeURIComponent(path)}?ref=${GITHUB_BRANCH}`;
-    const res = await fetch(url);
-    if (!res.ok) return;
-    const items = await res.json();
-
-    for (const item of items) {
-      if (item.type === 'dir') {
-        const newPathArr = [...pathArr, item.name];
-        let node = fileTree;
-        newPathArr.forEach(p => { if (!node[p]) node[p] = {}; node = node[p]; });
-        await loadFolderContents(item.path, newPathArr);
-      } else if (item.type === 'file' && item.name.toLowerCase().endsWith('.pdf')) {
-        let node = fileTree;
-        pathArr.forEach(p => { node = node[p]; });
-        if (!node.__files) node.__files = [];
-        node.__files.push({ name: item.name, githubPath: item.path });
-        allFiles.push({
-          name: item.name,
-          path: [...pathArr, item.name].join(' / '),
-          pathArr: [...pathArr, item.name],
-          githubPath: item.path
-        });
-      }
-    }
-  }
-
-  function getGitHubRawURL(githubPath) {
-    return `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${encodeURIComponent(githubPath).replace(/%2F/g, '/')}`;
-  }
-
-  function updateMeta() {
-    const folders = countFolders(fileTree);
-    document.getElementById('headerMeta').textContent =
-      `${allFiles.length} document(s) PDF · ${folders} dossier(s)`;
-    document.getElementById('statusCount').textContent =
-      `${allFiles.length} document(s) chargé(s)`;
-  }
-
-  function countFolders(node, count = 0) {
-    Object.keys(node).filter(k => k !== '__files').forEach(k => {
-      count = countFolders(node[k], count + 1);
-    });
-    return count;
-  }
-
-  // ─── TREE RENDER ─────────────────────────────────────────────────────────
-  function renderTree(node, container, pathArr) {
-    container.innerHTML = '';
-
-    const folders = Object.keys(node).filter(k => k !== '__files').sort();
-    const files = node.__files || [];
-
-    folders.forEach(folder => {
-      const itemPath = [...pathArr, folder];
-      const wrap = document.createElement('div');
-
-      const item = document.createElement('div');
-      item.className = 'tree-item folder';
-      item.style.paddingLeft = `${1.2 + pathArr.length * 1}rem`;
-
-      const toggle = document.createElement('span');
-      toggle.className = 'toggle';
-      toggle.textContent = '▶';
-
-      const icon = document.createElement('span');
-      icon.className = 'icon';
-      icon.textContent = '📁';
-
-      const name = document.createElement('span');
-      name.className = 'name';
-      name.textContent = folder;
-
-      item.appendChild(toggle);
-      item.appendChild(icon);
-      item.appendChild(name);
-
-      const children = document.createElement('div');
-      children.className = 'tree-children';
-
-      item.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isOpen = children.classList.contains('open');
-        children.classList.toggle('open', !isOpen);
-        toggle.classList.toggle('open', !isOpen);
-        icon.textContent = isOpen ? '📁' : '📂';
-        showFolder(itemPath);
-      });
-
-      renderTree(node[folder], children, itemPath);
-      wrap.appendChild(item);
-      wrap.appendChild(children);
-      container.appendChild(wrap);
-    });
-
-    files.forEach(({ name: fname, githubPath }) => {
-      const item = document.createElement('div');
-      item.className = 'tree-item pdf-file';
-      item.style.paddingLeft = `${1.2 + pathArr.length * 1}rem`;
-
-      const icon = document.createElement('span');
-      icon.className = 'icon';
-      icon.textContent = '📄';
-
-      const name = document.createElement('span');
-      name.className = 'name';
-      name.textContent = fname.replace(/\.pdf$/i, '');
-
-      item.appendChild(icon);
-      item.appendChild(name);
-
-      item.addEventListener('click', (e) => {
-        e.stopPropagation();
-        document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active'));
-        item.classList.add('active');
-        openPDF(githubPath, fname, pathArr);
-      });
-
-      container.appendChild(item);
-    });
-  }
-
-  // ─── NAVIGATION ──────────────────────────────────────────────────────────
-  function getNodeAt(pathArr) {
-    let node = fileTree;
-    for (const p of pathArr) {
-      if (node[p]) node = node[p];
-      else return null;
-    }
-    return node;
-  }
-
-  function showFolder(pathArr) {
-    currentPath = pathArr;
-    updateBreadcrumb(pathArr);
-    applyTheme(pathArr);
-
-    const node = pathArr.length === 0 ? fileTree : getNodeAt(pathArr);
-    if (!node) return;
-
-    const folders = Object.keys(node).filter(k => k !== '__files').sort();
-    const files = node.__files || [];
-    const label = pathArr.length === 0 ? 'Accueil' : pathArr[pathArr.length - 1];
-
-    let html = `<div class="folder-view">
-      <h2>${esc(label)}</h2>
-      <div class="meta">${folders.length} dossier(s) · ${files.length} document(s)</div>
-      <div class="grid">`;
-
-    folders.forEach(f => {
-      const subNode = node[f];
-      const subFolders = Object.keys(subNode).filter(k => k !== '__files').length;
-      const subFiles = (subNode.__files || []).length;
-      const pathJson = JSON.stringify([...pathArr, f]);
-      html += `<div class="card folder-card" data-action="folder" data-val="${esc(pathJson)}">
-        <div class="card-icon">📂</div>
-        <div class="card-name">${esc(f)}</div>
-        <div class="card-type">${subFolders} dossier(s) · ${subFiles} PDF</div>
-      </div>`;
-    });
-
-    files.forEach(({ name: fname, githubPath }) => {
-      const pathJson = JSON.stringify(pathArr);
-      html += `<div class="card pdf-card" data-action="pdf" data-gp="${esc(githubPath)}" data-fn="${esc(fname)}" data-val="${esc(pathJson)}">
-        <div class="card-icon">📄</div>
-        <div class="card-name">${esc(fname.replace(/\.pdf$/i, ''))}</div>
-        <div class="card-type">PDF</div>
-      </div>`;
-    });
-
-    html += `</div></div>`;
-    document.getElementById('contentArea').innerHTML = html;
-  }
-
-  window.openPDFInternal = window.openPDF = function(githubPath, fname, pathArr) {
-    updateBreadcrumb([...pathArr, fname]);
-    applyTheme(pathArr);
-    const rawURL = getGitHubRawURL(githubPath);
-    const viewerURL = `https://docs.google.com/viewer?url=${encodeURIComponent(rawURL)}&embedded=true`;
-    const displayName = fname.replace(/\.pdf$/i, '');
-
-    document.getElementById('contentArea').innerHTML = `
-      <div class="pdf-viewer">
-        <div class="pdf-header">
-          <div class="pdf-title">${esc(displayName)}</div>
-          <a class="btn primary" href="${rawURL}" target="_blank">⬇ Télécharger</a>
-        </div>
-        <div class="pdf-frame-wrap">
-          <iframe src="${viewerURL}" title="${esc(fname)}"></iframe>
-        </div>
-      </div>`;
-  };
-
-  // ─── BREADCRUMB ──────────────────────────────────────────────────────────
-  function updateBreadcrumb(pathArr) {
-    const bc = document.getElementById('breadcrumb');
-    let html = `<span onclick="showFolder([])">🏠 Accueil</span>`;
-    pathArr.forEach((part, i) => {
-      const sub = pathArr.slice(0, i + 1);
-      html += `<span class="sep">/</span>`;
-      if (i === pathArr.length - 1) {
-        html += `<span class="current">${esc(part.replace(/\.pdf$/i, ''))}</span>`;
-      } else {
-        html += `<span onclick="showFolder(${JSON.stringify(sub)})">${esc(part)}</span>`;
-      }
-    });
-    bc.innerHTML = html;
-  }
-
-  window.showWelcome = function() { showFolder([]); };
-
-  // ─── SEARCH ──────────────────────────────────────────────────────────────
-  function onSearch(query) {
-    if (!query.trim()) { showFolder(currentPath); return; }
-
-    const q = query.toLowerCase();
-    const results = allFiles.filter(f =>
-      f.name.toLowerCase().includes(q) || f.path.toLowerCase().includes(q)
-    );
-
-    let html = `<div class="search-results">
-      <div style="margin-bottom:1rem;font-size:0.8rem;color:var(--text-muted);">${results.length} résultat(s) pour « ${esc(query)} »</div>`;
-
-    if (results.length === 0) {
-      html += `<div class="no-results">Aucun document trouvé.</div>`;
-    } else {
-      results.forEach(r => {
-        html += `<div class="search-result-item" onclick="openPDF('${escAttr(r.githubPath)}', '${escAttr(r.name)}', ${JSON.stringify(r.pathArr.slice(0,-1))})">
-          <span>📄</span>
-          <div>
-            <div class="sr-name">${esc(r.name.replace(/\.pdf$/i, ''))}</div>
-            <div class="sr-path">${esc(r.path)}</div>
-          </div>
-        </div>`;
-      });
-    }
-
-    html += `</div>`;
-    document.getElementById('contentArea').innerHTML = html;
-    updateBreadcrumb([`Recherche : ${query}`]);
-  }
-
-  // ─── UTILS ───────────────────────────────────────────────────────────────
-  function esc(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-  function escAttr(s) {
-    return String(s).replace(/'/g, "\\'").replace(/\\/g, '\\\\');
-  }
-
-  // ─── EVENT DELEGATION GLOBALE ────────────────────────────────────────────
-  document.getElementById('contentArea').addEventListener('click', function(e) {
-    const card = e.target.closest('[data-action]');
-    if (!card) return;
-    const action = card.dataset.action;
-    if (action === 'folder') {
-      const p = JSON.parse(card.dataset.val);
-      showFolder(p);
-    } else if (action === 'pdf') {
-      const gp = card.dataset.gp;
-      const fn = card.dataset.fn;
-      const p = JSON.parse(card.dataset.val);
-      openPDFInternal(gp, fn, p);
-    }
-  });
-
-  // ─── LANDING PAGE ─────────────────────────────────────────────────────────
-  (function generateStars() {
-    const bg = document.getElementById('landingBg');
-    if (!bg) return;
-    const count = 90;
-    for (let i = 0; i < count; i++) {
-      const s = document.createElement('div');
-      s.className = 'star';
-      const size = Math.random() * 1.8 + 0.4;
-      s.style.cssText = `
-        width: ${size}px;
-        height: ${size}px;
-        top: ${Math.random() * 100}%;
-        left: ${Math.random() * 100}%;
-        --d: ${(Math.random() * 4 + 2).toFixed(1)}s;
-        --delay: ${(Math.random() * 5).toFixed(1)}s;
-        --min-op: ${(Math.random() * 0.08 + 0.04).toFixed(2)};
-        --max-op: ${(Math.random() * 0.45 + 0.2).toFixed(2)};
-      `;
-      bg.appendChild(s);
-    }
-  })();
-
-  function enterSite() {
-    const landing = document.getElementById('landingScreen');
-    landing.classList.add('fade-out');
-    setTimeout(() => {
-      landing.classList.add('hidden');
-      // Show the password screen (or main app if already unlocked)
-      if (sessionStorage.getItem('unlocked') === '1') {
-        document.getElementById('passwordScreen').classList.add('hidden');
-        initAfterUnlock();
-      } else {
-        document.getElementById('passwordScreen').classList.remove('hidden');
-      }
-    }, 800);
-  }
-
-  // ─── INIT ─────────────────────────────────────────────────────────────────
-  // Lance le chargement automatique après déverrouillage
-  function initAfterUnlock() {
-    // Supprimer le bouton "Charger dossier" qui n'est plus nécessaire
-    const btn = document.querySelector('.btn.primary');
-    const input = document.getElementById('folderInput');
-    if (btn) btn.style.display = 'none';
-    if (input) input.style.display = 'none';
-    loadFromGitHub();
-  }
-
-  // The landing page is always shown first; enterSite() handles navigation
-
+  },1000);
+}
+
+function initAfterUnlock(){
+  document.getElementById('appShell').classList.add('visible');
+  loadFromGitHub();
+}
 </script>
 </body>
 </html>
