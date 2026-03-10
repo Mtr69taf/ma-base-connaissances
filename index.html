@@ -628,6 +628,11 @@
       if (!res.ok) throw new Error('Erreur API GitHub : ' + res.status);
       const data = await res.json();
 
+      // If tree is truncated, warn user
+      if (data.truncated) {
+        console.warn('Arbre GitHub tronqué — certains fichiers peuvent manquer.');
+      }
+
       fileTree = {};
       allFiles = [];
 
@@ -662,12 +667,45 @@
         });
       });
 
+      if (allFiles.length === 0) {
+        // Fallback: try fetching subfolders manually
+        await loadFolderContents(ROOT_FOLDER, []);
+      }
+
       renderTree(fileTree, document.getElementById('treeRoot'), []);
       updateMeta();
       showFolder([]);
 
     } catch (e) {
       area.innerHTML = `<div class="welcome"><div class="big-icon">❌</div><h2>Erreur de chargement</h2><p>${e.message}</p></div>`;
+    }
+  }
+
+  // Fallback: load folder contents one by one via Contents API
+  async function loadFolderContents(path, pathArr) {
+    const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${encodeURIComponent(path)}?ref=${GITHUB_BRANCH}`;
+    const res = await fetch(url);
+    if (!res.ok) return;
+    const items = await res.json();
+
+    for (const item of items) {
+      if (item.type === 'dir') {
+        const newPathArr = [...pathArr, item.name];
+        let node = fileTree;
+        newPathArr.forEach(p => { if (!node[p]) node[p] = {}; node = node[p]; });
+        await loadFolderContents(item.path, newPathArr);
+      } else if (item.type === 'file' && item.name.toLowerCase().endsWith('.pdf')) {
+        let node = fileTree;
+        pathArr.forEach(p => { node = node[p]; });
+        if (!node.__files) node.__files = [];
+        node.__files.push({ name: item.name, githubPath: item.path });
+        allFiles.push({
+          name: item.name,
+          path: [...pathArr, item.name].join(' / '),
+          pathArr: [...pathArr, item.name],
+          githubPath: item.path
+        });
+      }
     }
   }
 
@@ -822,6 +860,7 @@
   window.openPDF = function(githubPath, fname, pathArr) {
     updateBreadcrumb([...pathArr, fname]);
     const rawURL = getGitHubRawURL(githubPath);
+    const viewerURL = `https://docs.google.com/viewer?url=${encodeURIComponent(rawURL)}&embedded=true`;
     const displayName = fname.replace(/\.pdf$/i, '');
 
     document.getElementById('contentArea').innerHTML = `
@@ -831,7 +870,7 @@
           <a class="btn primary" href="${rawURL}" target="_blank">⬇ Télécharger</a>
         </div>
         <div class="pdf-frame-wrap">
-          <iframe src="${rawURL}" title="${esc(fname)}"></iframe>
+          <iframe src="${viewerURL}" title="${esc(fname)}"></iframe>
         </div>
       </div>`;
   };
