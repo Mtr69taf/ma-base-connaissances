@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Ma Base de Connaissances</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet"/>
   <style>
     :root {
       --bg: #0d0d0d;
@@ -725,11 +725,299 @@
       aside { width: 100%; height: 220px; border-right: none; border-bottom: 1px solid var(--border); }
       main { height: calc(100vh - 220px - 80px); }
     }
+
+    /* ══════════════════════════════════════════════════════
+       PAGE D'ACCUEIL
+    ══════════════════════════════════════════════════════ */
+    #landingScreen {
+      position: fixed;
+      inset: 0;
+      background: #07050e;
+      z-index: 9998;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    #landingScreen.fade-out {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-12px);
+    }
+    #landingScreen.hidden { display: none; }
+
+    /* Fond étoilé / particules */
+    .landing-bg {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .landing-bg::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 30%, rgba(200,130,42,0.07) 0%, transparent 55%),
+        radial-gradient(ellipse at 80% 70%, rgba(120,80,200,0.05) 0%, transparent 55%),
+        radial-gradient(ellipse at 55% 10%, rgba(255,220,120,0.04) 0%, transparent 40%);
+    }
+    .star {
+      position: absolute;
+      border-radius: 50%;
+      background: #fff;
+      animation: twinkle var(--d, 4s) ease-in-out infinite;
+      animation-delay: var(--delay, 0s);
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: var(--min-op, 0.1); }
+      50%       { opacity: var(--max-op, 0.6); }
+    }
+
+    /* Ligne décorative dorée */
+    .landing-line {
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 1px;
+      height: 100%;
+      background: linear-gradient(to bottom, transparent 0%, rgba(200,169,110,0.12) 30%, rgba(200,169,110,0.22) 50%, rgba(200,169,110,0.12) 70%, transparent 100%);
+      pointer-events: none;
+    }
+
+    /* Contenu centré */
+    .landing-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      max-width: 680px;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      animation: landingFadeIn 1.4s ease both;
+    }
+    @keyframes landingFadeIn {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .landing-eyebrow {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--accent);
+      opacity: 0.85;
+      margin-bottom: 1.6rem;
+      animation: landingFadeIn 1.4s 0.15s ease both;
+    }
+
+    .landing-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.6rem, 6vw, 4.4rem);
+      font-weight: 300;
+      letter-spacing: 0.02em;
+      color: #f0e8d8;
+      line-height: 1.15;
+      margin-bottom: 0.5rem;
+      animation: landingFadeIn 1.4s 0.25s ease both;
+    }
+    .landing-title em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .landing-ornament {
+      color: var(--accent);
+      font-size: 1.1rem;
+      opacity: 0.6;
+      letter-spacing: 0.5em;
+      margin: 1.4rem 0;
+      animation: landingFadeIn 1.4s 0.4s ease both;
+    }
+
+    .landing-desc {
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 300;
+      color: #8a8078;
+      line-height: 1.85;
+      max-width: 480px;
+      margin-bottom: 2.4rem;
+      animation: landingFadeIn 1.4s 0.5s ease both;
+    }
+
+    /* Citation */
+    .landing-quote {
+      position: relative;
+      max-width: 520px;
+      margin: 0 0 2.8rem;
+      padding: 1.8rem 2rem;
+      border: 1px solid rgba(200,169,110,0.18);
+      border-radius: 2px;
+      background: rgba(200,169,110,0.03);
+      animation: landingFadeIn 1.4s 0.6s ease both;
+    }
+    .landing-quote::before {
+      content: '\201C';
+      position: absolute;
+      top: -0.6rem;
+      left: 1.4rem;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3.5rem;
+      color: var(--accent);
+      opacity: 0.5;
+      line-height: 1;
+    }
+    .landing-quote p {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.12rem;
+      font-style: italic;
+      font-weight: 300;
+      color: #c8c0b0;
+      line-height: 1.7;
+      margin-bottom: 0.7rem;
+    }
+    .landing-quote cite {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      opacity: 0.7;
+      font-style: normal;
+      text-transform: uppercase;
+    }
+
+    /* Auteur */
+    .landing-author {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      margin-bottom: 2.8rem;
+      animation: landingFadeIn 1.4s 0.7s ease both;
+    }
+    .landing-author-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid rgba(200,169,110,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      background: rgba(200,169,110,0.06);
+      flex-shrink: 0;
+    }
+    .landing-author-info {
+      text-align: left;
+    }
+    .landing-author-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #e0d8c8;
+      letter-spacing: 0.05em;
+    }
+    .landing-author-role {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--accent);
+      opacity: 0.7;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-top: 0.15rem;
+    }
+
+    /* Bouton entrer */
+    .btn-enter {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #07050e;
+      background: var(--accent);
+      border: none;
+      padding: 0.85rem 2.8rem;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: opacity 0.2s, transform 0.2s;
+      animation: landingFadeIn 1.4s 0.85s ease both;
+    }
+    .btn-enter:hover {
+      opacity: 0.88;
+      transform: translateY(-1px);
+    }
+    .btn-enter-sub {
+      margin-top: 0.75rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.12em;
+      color: #4a4540;
+      animation: landingFadeIn 1.4s 1s ease both;
+    }
+
+    /* Pied décoratif */
+    .landing-footer {
+      position: absolute;
+      bottom: 1.8rem;
+      left: 0; right: 0;
+      text-align: center;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.12em;
+      color: #2e2a26;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 680px) {
+      .landing-title { font-size: 2.2rem; }
+      .landing-quote { padding: 1.4rem 1.4rem; }
+    }
   </style>
 </head>
 <body>
 
-<div id="passwordScreen">
+<div id="landingScreen">
+  <div class="landing-bg" id="landingBg"></div>
+  <div class="landing-line"></div>
+
+  <div class="landing-content">
+    <div class="landing-eyebrow">Base de Connaissances</div>
+
+    <h1 class="landing-title">Une bibliothèque<br>pour l'<em>esprit</em></h1>
+
+    <div class="landing-ornament">✦ &nbsp; ✦ &nbsp; ✦</div>
+
+    <p class="landing-desc">
+      Un espace de lecture, d'étude et de réflexion rassemblant des documents
+      soigneusement sélectionnés en philosophie, théologie, sciences humaines et bien d'autres domaines.
+    </p>
+
+    <div class="landing-quote">
+      <p>Savoir que l'on ne sait rien, c'est le début de la sagesse.</p>
+      <cite>— Socrate</cite>
+    </div>
+
+    <div class="landing-author">
+      <div class="landing-author-icon">✝</div>
+      <div class="landing-author-info">
+        <div class="landing-author-name">Matis Tafaro</div>
+        <div class="landing-author-role">Chrétien orthodoxe · Curieux du monde</div>
+      </div>
+    </div>
+
+    <button class="btn-enter" onclick="enterSite()">Entrer dans la bibliothèque</button>
+    <div class="btn-enter-sub">Accès protégé par mot de passe</div>
+  </div>
+
+  <div class="landing-footer">Bibliothèque personnelle de Matis Tafaro &nbsp;·&nbsp; Connaissance & Foi</div>
+</div>
+
+<div id="passwordScreen" class="hidden">
   <div class="lock-box">
     <div class="lock-icon">🔐</div>
     <h2>Ma Base de Connaissances</h2>
@@ -1485,6 +1773,44 @@
     }
   });
 
+  // ─── LANDING PAGE ─────────────────────────────────────────────────────────
+  (function generateStars() {
+    const bg = document.getElementById('landingBg');
+    if (!bg) return;
+    const count = 90;
+    for (let i = 0; i < count; i++) {
+      const s = document.createElement('div');
+      s.className = 'star';
+      const size = Math.random() * 1.8 + 0.4;
+      s.style.cssText = `
+        width: ${size}px;
+        height: ${size}px;
+        top: ${Math.random() * 100}%;
+        left: ${Math.random() * 100}%;
+        --d: ${(Math.random() * 4 + 2).toFixed(1)}s;
+        --delay: ${(Math.random() * 5).toFixed(1)}s;
+        --min-op: ${(Math.random() * 0.08 + 0.04).toFixed(2)};
+        --max-op: ${(Math.random() * 0.45 + 0.2).toFixed(2)};
+      `;
+      bg.appendChild(s);
+    }
+  })();
+
+  function enterSite() {
+    const landing = document.getElementById('landingScreen');
+    landing.classList.add('fade-out');
+    setTimeout(() => {
+      landing.classList.add('hidden');
+      // Show the password screen (or main app if already unlocked)
+      if (sessionStorage.getItem('unlocked') === '1') {
+        document.getElementById('passwordScreen').classList.add('hidden');
+        initAfterUnlock();
+      } else {
+        document.getElementById('passwordScreen').classList.remove('hidden');
+      }
+    }, 800);
+  }
+
   // ─── INIT ─────────────────────────────────────────────────────────────────
   // Lance le chargement automatique après déverrouillage
   function initAfterUnlock() {
@@ -1496,10 +1822,7 @@
     loadFromGitHub();
   }
 
-  if (sessionStorage.getItem('unlocked') === '1') {
-    document.getElementById('passwordScreen').classList.add('hidden');
-    initAfterUnlock();
-  }
+  // The landing page is always shown first; enterSite() handles navigation
 
 </script>
 </body>
