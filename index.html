@@ -321,7 +321,10 @@ body.focus-mode main{flex:1}
 .sr-path{font-size:0.63rem;color:var(--text-muted);font-family:'JetBrains Mono',monospace;margin-top:0.1rem}
 .no-results{text-align:center;padding:3rem;color:var(--text-muted);font-size:0.8rem}
 
-@media(max-width:680px){
+@keyframes slideUpIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* Music panel note */
+#musicPanel iframe{border-radius:0}
   .app-body{flex-direction:column}
   aside{width:100%;height:180px;border-right:none;border-bottom:1px solid var(--border)}
   .earth-scene{width:80vmin;height:80vmin;right:-25vw;opacity:0.35}
@@ -421,6 +424,7 @@ body.focus-mode main{flex:1}
     </div>
     <div class="h-right">
       <button class="h-btn" onclick="showStats()" title="Statistiques">📊</button>
+      <button class="h-btn" id="musicBtn" onclick="openMusicPlayer()" title="Musique d'ambiance">🎵</button>
       <button class="h-btn" id="focusBtn" onclick="toggleFocus()" title="Mode focus (F)">⛶</button>
       <div class="h-sep"></div>
       <button class="h-btn accent" onclick="document.getElementById('folderInput').click()">＋ Charger</button>
@@ -821,6 +825,8 @@ function applyTheme(pathArr,label=''){
   particleActive=theme!=='t-default';
   // Status
   document.getElementById('statusTheme').textContent=THEME_LABELS[theme]||'';
+  // Refresh music if playing
+  if(typeof refreshMusicIfOpen==='function')refreshMusicIfOpen();
 }
 
 function getRandomQuote(themeKey){
@@ -970,8 +976,9 @@ function showFolder(pathArr){
   });
   files.forEach(({name:fn,githubPath})=>{
     const fav=isFav(githubPath);
+    const paB64=btoa(unescape(encodeURIComponent(JSON.stringify(pathArr))));
     html+=`<div class="card pdf-card" data-action="pdf" data-gp="${esc(githubPath)}" data-fn="${esc(fn)}" data-val="${esc(JSON.stringify(pathArr))}">
-      <button class="c-fav ${fav?'on':''}" data-gp="${esc(githubPath)}" data-fn="${esc(fn)}" data-pa="${esc(JSON.stringify(pathArr))}" onclick="event.stopPropagation();toggleFav(this.dataset.gp,this.dataset.fn,JSON.parse(this.dataset.pa))" title="Favori">${fav?'⭐':'☆'}</button>
+      <button class="c-fav ${fav?'on':''}" data-gp="${esc(githubPath)}" data-fn="${esc(fn)}" data-pa="${paB64}" onclick="event.stopPropagation();toggleFavB64(this)" title="Favori">${fav?'⭐':'☆'}</button>
       <div class="c-icon">📄</div>
       <div class="c-name">${esc(fn.replace(/\.pdf$/i,''))}</div>
       <div class="c-meta">PDF</div>
@@ -988,12 +995,13 @@ window.openPDFInternal=window.openPDF=function(gp,fn,pa){
   const raw=getRawURL(gp);
   const vurl=`https://docs.google.com/viewer?url=${encodeURIComponent(raw)}&embedded=true`;
   const fav=isFav(gp);
+  const paB64=btoa(unescape(encodeURIComponent(JSON.stringify(pa))));
   document.getElementById('contentArea').innerHTML=`
     <div class="pdf-viewer">
       <div class="pdf-header">
         <div class="pdf-title">${esc(fn.replace(/\.pdf$/i,''))}</div>
         <div class="pdf-actions">
-          <button class="h-btn ${fav?'active':''}" id="pdfFavBtn" onclick="toggleFavPdf('${escAttr(gp)}','${escAttr(fn)}',${JSON.stringify(pa)})" title="Favori">${fav?'⭐ Favori':'☆ Favori'}</button>
+          <button class="h-btn ${fav?'active':''}" id="pdfFavBtn" data-gp="${esc(gp)}" data-fn="${esc(fn)}" data-pa="${paB64}" onclick="toggleFavPdfBtn(this)" title="Favori">${fav?'⭐ Favori':'☆ Favori'}</button>
           <button class="h-btn" onclick="toggleFocus()" title="Mode focus">⛶ Focus</button>
           <a class="h-btn accent" href="${raw}" target="_blank">⬇ Télécharger</a>
         </div>
@@ -1005,11 +1013,101 @@ window.openPDFInternal=window.openPDF=function(gp,fn,pa){
     </div>`;
 };
 
-function toggleFavPdf(gp,fn,pa){
+function toggleFavPdfBtn(btn){
+  const gp=btn.dataset.gp,fn=btn.dataset.fn;
+  const pa=JSON.parse(decodeURIComponent(escape(atob(btn.dataset.pa))));
   toggleFav(gp,fn,pa);
-  const btn=document.getElementById('pdfFavBtn');
-  if(btn){const f=isFav(gp);btn.textContent=f?'⭐ Favori':'☆ Favori';btn.classList.toggle('active',f)}
+  const f=isFav(gp);
+  btn.textContent=f?'⭐ Favori':'☆ Favori';
+  btn.classList.toggle('active',f);
 }
+
+function toggleFavB64(btn){
+  const gp=btn.dataset.gp,fn=btn.dataset.fn;
+  const pa=JSON.parse(decodeURIComponent(escape(atob(btn.dataset.pa))));
+  toggleFav(gp,fn,pa);
+  const f=isFav(gp);
+  btn.textContent=f?'⭐':'☆';
+  btn.classList.toggle('on',f);
+}
+
+/* =========================================================
+   AMBIENT MUSIC
+========================================================= */
+// YouTube playlist/video IDs per theme (lofi/ambient, royalty-free spirit)
+const THEME_MUSIC = {
+  't-default':      {label:'Musique de bibliothèque', url:'https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1&loop=1&playlist=jfKfPfyJRdk'},
+  't-philosophie':  {label:'Musique de réflexion',    url:'https://www.youtube.com/embed/77ZozI0rw7w?autoplay=1&loop=1&playlist=77ZozI0rw7w'},
+  't-islam':        {label:'Nasheeds apaisants',       url:'https://www.youtube.com/embed/l3ezZTbTmUk?autoplay=1&loop=1&playlist=l3ezZTbTmUk'},
+  't-christianisme':{label:'Musique orthodoxe',        url:'https://www.youtube.com/embed/f3lFpLkiu8U?autoplay=1&loop=1&playlist=f3lFpLkiu8U'},
+  't-religions':    {label:'Musique méditatives',      url:'https://www.youtube.com/embed/lTRiuFIWV54?autoplay=1&loop=1&playlist=lTRiuFIWV54'},
+  't-politique':    {label:'Musique de concentration', url:'https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1&loop=1&playlist=jfKfPfyJRdk'},
+  't-sociologie':   {label:'Ambiance urbaine',         url:'https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1&loop=1&playlist=jfKfPfyJRdk'},
+  't-livres':       {label:'Café et lecture',          url:'https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1&loop=1&playlist=jfKfPfyJRdk'},
+  't-sciences':     {label:'Focus & concentration',    url:'https://www.youtube.com/embed/WPni755-Krg?autoplay=1&loop=1&playlist=WPni755-Krg'},
+  't-psychologie':  {label:'Sons apaisants',           url:'https://www.youtube.com/embed/lTRiuFIWV54?autoplay=1&loop=1&playlist=lTRiuFIWV54'},
+  't-economie':     {label:'Musique de travail',       url:'https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1&loop=1&playlist=jfKfPfyJRdk'},
+  't-developpement':{label:'Motivation & flow',        url:'https://www.youtube.com/embed/WPni755-Krg?autoplay=1&loop=1&playlist=WPni755-Krg'},
+  't-communication':{label:'Ambiance créative',        url:'https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1&loop=1&playlist=jfKfPfyJRdk'},
+  't-culture':      {label:'Jazz & culture',           url:'https://www.youtube.com/embed/Dx5qFachd3A?autoplay=1&loop=1&playlist=Dx5qFachd3A'},
+};
+let musicPlaying=false,musicTheme=null;
+
+function openMusicPlayer(){
+  const theme=currentTheme||'t-default';
+  const info=THEME_MUSIC[theme]||THEME_MUSIC['t-default'];
+  const existing=document.getElementById('musicPanel');
+  if(existing){existing.remove();musicPlaying=false;updateMusicBtn();return}
+  const panel=document.createElement('div');
+  panel.id='musicPanel';
+  panel.style.cssText=`position:fixed;bottom:3rem;right:1.5rem;z-index:4000;
+    width:320px;background:var(--surface);border:1px solid var(--border2);
+    border-radius:12px;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,0.5);
+    animation:slideUpIn 0.25s ease`;
+  panel.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0.7rem 1rem;border-bottom:1px solid var(--border);background:var(--surface2)">
+      <div style="display:flex;align-items:center;gap:0.5rem">
+        <span style="font-size:0.9rem">🎵</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:var(--accent)">${info.label}</span>
+      </div>
+      <button onclick="closeMusicPanel()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.9rem;line-height:1;padding:0.1rem">✕</button>
+    </div>
+    <div style="padding:0.6rem 0.75rem;background:var(--surface2);border-bottom:1px solid var(--border)">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:var(--text-muted);letter-spacing:0.08em;margin-bottom:0.4rem">THÈME ACTIF — ${THEME_LABELS[theme]||'Bibliothèque'}</div>
+      <div style="font-size:0.72rem;color:var(--text-dim)">Musique d'ambiance adaptée. Ouvre YouTube dans un onglet caché — aucun tracking.</div>
+    </div>
+    <iframe id="musicFrame" width="320" height="180" src="${info.url}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="display:block"></iframe>
+    <div style="padding:0.6rem 1rem;display:flex;align-items:center;justify-content:space-between">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:var(--text-muted)">↑ Volume dans la vidéo YouTube</span>
+      <button onclick="closeMusicPanel()" style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;background:none;border:1px solid var(--border);color:var(--text-muted);cursor:pointer;border-radius:4px;padding:0.2rem 0.5rem;transition:all 0.15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">Fermer</button>
+    </div>`;
+  document.body.appendChild(panel);
+  musicPlaying=true;musicTheme=theme;
+  updateMusicBtn();
+}
+
+function closeMusicPanel(){
+  const p=document.getElementById('musicPanel');
+  if(p)p.remove();
+  musicPlaying=false;updateMusicBtn();
+}
+
+function updateMusicBtn(){
+  const btn=document.getElementById('musicBtn');
+  if(!btn)return;
+  btn.classList.toggle('active',musicPlaying);
+  btn.title=musicPlaying?'Arrêter la musique':'Musique d\'ambiance';
+  btn.textContent=musicPlaying?'🎵':'🎵';
+}
+
+// Reload music panel when theme changes if already open
+function refreshMusicIfOpen(){
+  if(musicPlaying&&musicTheme&&musicTheme!==currentTheme){
+    closeMusicPanel();
+    setTimeout(openMusicPlayer,300);
+  }
+}
+
 
 /* =========================================================
    BREADCRUMB & BACK
@@ -1017,9 +1115,9 @@ function toggleFavPdf(gp,fn,pa){
 function updateBreadcrumb(pa){
   let html='';
   if(pa.length>0){
-    const backTarget=pa.length===1?[]:pa.slice(0,-1);
-    const isFile=pa[pa.length-1].toLowerCase().endsWith('.pdf');
-    const backPath=isFile&&pa.length>1?pa.slice(0,-1):backTarget;
+    // If last element is a PDF filename, go back to parent folder; else go up one level
+    const lastIsPdf=pa[pa.length-1].toLowerCase().endsWith('.pdf');
+    const backPath=lastIsPdf ? pa.slice(0,-1) : (pa.length===1?[]  :pa.slice(0,-1));
     html+=`<span class="bc-back" onclick="showFolder(${JSON.stringify(backPath)})" title="Retour">← Retour</span>`;
   }
   html+=`<span onclick="showFolder([])">Accueil</span>`;
