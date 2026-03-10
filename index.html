@@ -579,6 +579,12 @@
 </div>
 
 <script>
+  // ─── CONFIG GITHUB ────────────────────────────────────────────────────────
+  const GITHUB_USER = 'Mtr69taf';
+  const GITHUB_REPO = 'ma-base-connaissances';
+  const GITHUB_BRANCH = 'main';
+  const ROOT_FOLDER = 'Clé USB'; // dossier racine sur GitHub
+
   // ─── PASSWORD ─────────────────────────────────────────────────────────────
   const HASH = "389c8e08359f04c3e38a7a5d64dbade9ab433c7932568920945433bbd3164533"; // SHA-256 of "0169"
 
@@ -593,6 +599,7 @@
     if (hash === HASH) {
       document.getElementById('passwordScreen').classList.add('hidden');
       sessionStorage.setItem('unlocked', '1');
+      initAfterUnlock();
     } else {
       const input = document.getElementById('pwdInput');
       const err = document.getElementById('pwdError');
@@ -602,58 +609,70 @@
     }
   }
 
-  // Auto-unlock if already authenticated this session
-  if (sessionStorage.getItem('unlocked') === '1') {
-    document.getElementById('passwordScreen').classList.add('hidden');
-  }
+  // (auto-unlock handled in INIT section below)
 
   // ─── STATE ───────────────────────────────────────────────────────────────
-  let fileTree = {};      // nested object
-  let allFiles = [];      // flat list {name, path, pathArr, file}
-  let currentPath = [];   // navigation path
-  let currentFile = null;
+  let fileTree = {};
+  let allFiles = [];
+  let currentPath = [];
 
-  // ─── LOAD FILES ──────────────────────────────────────────────────────────
-  function loadFiles(fileList) {
-    fileTree = {};
-    allFiles = [];
+  // ─── LOAD FROM GITHUB API ────────────────────────────────────────────────
+  async function loadFromGitHub() {
+    const area = document.getElementById('contentArea');
+    area.innerHTML = `<div class="welcome"><div class="big-icon">⏳</div><h2>Chargement de vos documents...</h2><p>Connexion à GitHub en cours.</p></div>`;
 
-    Array.from(fileList).forEach(f => {
-      // Only PDFs
-      if (!f.name.toLowerCase().endsWith('.pdf')) return;
+    try {
+      // Fetch the full git tree recursively
+      const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/git/trees/${GITHUB_BRANCH}?recursive=1`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Erreur API GitHub : ' + res.status);
+      const data = await res.json();
 
-      // relativePath = "Politique/Elections/doc.pdf"
-      const rel = f.webkitRelativePath || f.name;
-      const parts = rel.split('/');
+      fileTree = {};
+      allFiles = [];
 
-      // Remove top-level root folder name (the USB/folder name itself)
-      const pathParts = parts.slice(1); // skip root folder
-      if (pathParts.length === 0) return;
+      data.tree.forEach(item => {
+        if (item.type !== 'blob') return;
+        if (!item.path.toLowerCase().endsWith('.pdf')) return;
 
-      // Build nested tree
-      let node = fileTree;
-      pathParts.forEach((part, i) => {
-        if (i === pathParts.length - 1) {
-          // file
-          if (!node.__files) node.__files = [];
-          node.__files.push({ name: part, file: f });
-        } else {
-          if (!node[part]) node[part] = {};
-          node = node[part];
-        }
+        // Only files inside ROOT_FOLDER
+        const prefix = ROOT_FOLDER + '/';
+        if (!item.path.startsWith(prefix)) return;
+
+        const relative = item.path.slice(prefix.length);
+        const parts = relative.split('/');
+
+        // Build nested tree
+        let node = fileTree;
+        parts.forEach((part, i) => {
+          if (i === parts.length - 1) {
+            if (!node.__files) node.__files = [];
+            node.__files.push({ name: part, githubPath: item.path });
+          } else {
+            if (!node[part]) node[part] = {};
+            node = node[part];
+          }
+        });
+
+        allFiles.push({
+          name: parts[parts.length - 1],
+          path: parts.join(' / '),
+          pathArr: parts,
+          githubPath: item.path
+        });
       });
 
-      allFiles.push({
-        name: f.name,
-        path: pathParts.join(' / '),
-        pathArr: pathParts,
-        file: f
-      });
-    });
+      renderTree(fileTree, document.getElementById('treeRoot'), []);
+      updateMeta();
+      showFolder([]);
 
-    renderTree(fileTree, document.getElementById('treeRoot'), []);
-    updateMeta();
-    showFolder([]);
+    } catch (e) {
+      area.innerHTML = `<div class="welcome"><div class="big-icon">❌</div><h2>Erreur de chargement</h2><p>${e.message}</p></div>`;
+    }
+  }
+
+  function getGitHubRawURL(githubPath) {
+    return `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${encodeURIComponent(githubPath).replace(/%2F/g, '/')}`;
   }
 
   function updateMeta() {
@@ -680,7 +699,6 @@
 
     folders.forEach(folder => {
       const itemPath = [...pathArr, folder];
-
       const wrap = document.createElement('div');
 
       const item = document.createElement('div');
@@ -721,11 +739,10 @@
       container.appendChild(wrap);
     });
 
-    files.forEach(({ name: fname, file }) => {
+    files.forEach(({ name: fname, githubPath }) => {
       const item = document.createElement('div');
       item.className = 'tree-item pdf-file';
       item.style.paddingLeft = `${1.2 + pathArr.length * 1}rem`;
-      item.dataset.path = JSON.stringify([...pathArr, fname]);
 
       const icon = document.createElement('span');
       icon.className = 'icon';
@@ -733,7 +750,7 @@
 
       const name = document.createElement('span');
       name.className = 'name';
-      name.textContent = fname.replace('.pdf', '').replace('.PDF', '');
+      name.textContent = fname.replace(/\.pdf$/i, '');
 
       item.appendChild(icon);
       item.appendChild(name);
@@ -742,7 +759,7 @@
         e.stopPropagation();
         document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active'));
         item.classList.add('active');
-        openPDF(file, fname, pathArr);
+        openPDF(githubPath, fname, pathArr);
       });
 
       container.appendChild(item);
@@ -761,7 +778,6 @@
 
   function showFolder(pathArr) {
     currentPath = pathArr;
-    currentFile = null;
     updateBreadcrumb(pathArr);
 
     const node = pathArr.length === 0 ? fileTree : getNodeAt(pathArr);
@@ -769,9 +785,7 @@
 
     const folders = Object.keys(node).filter(k => k !== '__files').sort();
     const files = node.__files || [];
-
     const label = pathArr.length === 0 ? 'Accueil' : pathArr[pathArr.length - 1];
-    const totalItems = folders.length + files.length;
 
     let html = `<div class="folder-view">
       <h2>${label}</h2>
@@ -789,8 +803,8 @@
       </div>`;
     });
 
-    files.forEach(({ name: fname, file }, i) => {
-      html += `<div class="card pdf-card" onclick="openPDFByIndex(${JSON.stringify([...pathArr])}, ${i})">
+    files.forEach(({ name: fname, githubPath }) => {
+      html += `<div class="card pdf-card" onclick="openPDF('${escAttr(githubPath)}', '${escAttr(fname)}', ${JSON.stringify(pathArr)})">
         <div class="card-icon">📄</div>
         <div class="card-name">${esc(fname.replace(/\.pdf$/i, ''))}</div>
         <div class="card-type">PDF</div>
@@ -802,42 +816,30 @@
   }
 
   window.navigateFolder = function(jsonPath) {
-    const pathArr = JSON.parse(jsonPath);
-    showFolder(pathArr);
+    showFolder(JSON.parse(jsonPath));
   };
 
-  window.openPDFByIndex = function(pathArr, i) {
-    const node = pathArr.length === 0 ? fileTree : getNodeAt(pathArr);
-    if (!node) return;
-    const files = node.__files || [];
-    if (!files[i]) return;
-    openPDF(files[i].file, files[i].name, pathArr);
-  };
-
-  function openPDF(file, fname, pathArr) {
-    currentFile = file;
+  window.openPDF = function(githubPath, fname, pathArr) {
     updateBreadcrumb([...pathArr, fname]);
-
-    const url = URL.createObjectURL(file);
+    const rawURL = getGitHubRawURL(githubPath);
     const displayName = fname.replace(/\.pdf$/i, '');
 
     document.getElementById('contentArea').innerHTML = `
       <div class="pdf-viewer">
         <div class="pdf-header">
           <div class="pdf-title">${esc(displayName)}</div>
-          <a class="btn primary" href="${url}" download="${esc(fname)}">⬇ Télécharger</a>
+          <a class="btn primary" href="${rawURL}" target="_blank">⬇ Télécharger</a>
         </div>
         <div class="pdf-frame-wrap">
-          <iframe src="${url}" title="${esc(fname)}"></iframe>
+          <iframe src="${rawURL}" title="${esc(fname)}"></iframe>
         </div>
       </div>`;
-  }
+  };
 
   // ─── BREADCRUMB ──────────────────────────────────────────────────────────
   function updateBreadcrumb(pathArr) {
     const bc = document.getElementById('breadcrumb');
     let html = `<span onclick="showFolder([])">🏠 Accueil</span>`;
-
     pathArr.forEach((part, i) => {
       const sub = pathArr.slice(0, i + 1);
       html += `<span class="sep">/</span>`;
@@ -847,7 +849,6 @@
         html += `<span onclick="showFolder(${JSON.stringify(sub)})">${esc(part)}</span>`;
       }
     });
-
     bc.innerHTML = html;
   }
 
@@ -855,10 +856,7 @@
 
   // ─── SEARCH ──────────────────────────────────────────────────────────────
   function onSearch(query) {
-    if (!query.trim()) {
-      showFolder(currentPath);
-      return;
-    }
+    if (!query.trim()) { showFolder(currentPath); return; }
 
     const q = query.toLowerCase();
     const results = allFiles.filter(f =>
@@ -872,7 +870,7 @@
       html += `<div class="no-results">Aucun document trouvé.</div>`;
     } else {
       results.forEach(r => {
-        html += `<div class="search-result-item" onclick="openPDFFromSearch('${escAttr(r.path)}')">
+        html += `<div class="search-result-item" onclick="openPDF('${escAttr(r.githubPath)}', '${escAttr(r.name)}', ${JSON.stringify(r.pathArr.slice(0,-1))})">
           <span>📄</span>
           <div>
             <div class="sr-name">${esc(r.name.replace(/\.pdf$/i, ''))}</div>
@@ -887,38 +885,30 @@
     updateBreadcrumb([`Recherche : ${query}`]);
   }
 
-  window.openPDFFromSearch = function(path) {
-    const r = allFiles.find(f => f.path === path);
-    if (r) openPDF(r.file, r.name, r.pathArr.slice(0, -1));
-  };
-
-  // ─── DRAG & DROP ─────────────────────────────────────────────────────────
-  const dropZoneEl = document.getElementById('dropZone');
-  if (dropZoneEl) {
-    dropZoneEl.addEventListener('dragover', e => {
-      e.preventDefault();
-      dropZoneEl.classList.add('dragover');
-    });
-    dropZoneEl.addEventListener('dragleave', () => dropZoneEl.classList.remove('dragover'));
-    dropZoneEl.addEventListener('drop', e => {
-      e.preventDefault();
-      dropZoneEl.classList.remove('dragover');
-      const items = e.dataTransfer.items;
-      if (items) {
-        // Trigger file input as fallback message
-        alert("Pour charger un dossier entier, utilisez le bouton « Charger dossier » en haut à droite (limitation navigateur).");
-      }
-    });
-    dropZoneEl.addEventListener('click', () => document.getElementById('folderInput').click());
-  }
-
   // ─── UTILS ───────────────────────────────────────────────────────────────
   function esc(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
   function escAttr(s) {
-    return String(s).replace(/'/g, "\\'");
+    return String(s).replace(/'/g, "\\'").replace(/\\/g, '\\\\');
   }
+
+  // ─── INIT ─────────────────────────────────────────────────────────────────
+  // Lance le chargement automatique après déverrouillage
+  function initAfterUnlock() {
+    // Supprimer le bouton "Charger dossier" qui n'est plus nécessaire
+    const btn = document.querySelector('.btn.primary');
+    const input = document.getElementById('folderInput');
+    if (btn) btn.style.display = 'none';
+    if (input) input.style.display = 'none';
+    loadFromGitHub();
+  }
+
+  if (sessionStorage.getItem('unlocked') === '1') {
+    document.getElementById('passwordScreen').classList.add('hidden');
+    initAfterUnlock();
+  }
+
 </script>
 </body>
 </html>
