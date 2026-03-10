@@ -68,12 +68,15 @@ body{
 .milky{
   position:absolute;top:0;left:0;right:0;bottom:0;
   background:linear-gradient(105deg,transparent 30%,rgba(120,140,200,0.025) 50%,transparent 70%);
-  pointer-events:none;
+  pointer-events:none !important;z-index:1;
 }
+
+/* Stars */
+#stars *{pointer-events:none !important}
 
 /* Vignette */
 .vignette{
-  position:absolute;inset:0;pointer-events:none;z-index:2;
+  position:absolute;inset:0;pointer-events:none !important;z-index:2;
   background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,0.7) 100%);
 }
 
@@ -83,11 +86,8 @@ body{
   width:62vmin;height:62vmin;
   transform:translateY(-50%);
   animation:earthDrift 22s ease-in-out infinite;
-  pointer-events:none;
+  pointer-events:none !important;
   z-index:1;
-}
-.landing-content{
-  position:relative;z-index:10;
 }
 @keyframes earthDrift{
   0%,100%{transform:translateY(calc(-50% + 0px)) rotate(0.0deg)}
@@ -107,9 +107,10 @@ body{
 
 /* Landing content */
 .landing-content{
-  position:relative;z-index:20;
+  position:relative;z-index:100;isolation:isolate;
   max-width:520px;padding:2.5rem 3rem;
   display:flex;flex-direction:column;align-items:flex-start;
+  pointer-events:auto;
 }
 .l-eyebrow{
   font-family:'JetBrains Mono',monospace;font-size:0.6rem;
@@ -664,7 +665,7 @@ const HASH = "389c8e08359f04c3e38a7a5d64dbade9ab433c7932568920945433bbd3164533";
 
   // Tectonic plate lines (simplified)
   const plates = [
-    [[-120,60],[−80,42],[−40,36],[0,36]],
+    [[-120,60],[-80,42],[-40,36],[0,36]],
     [[120,24],[140,36],[160,48]],
     [[60,-10],[36,44]],
   ];
