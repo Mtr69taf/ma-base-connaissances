@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ma Base de Connaissances</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --surface: #141414;
+      --surface2: #1c1c1c;
+      --border: #2a2a2a;
+      --accent: #c8a96e;
+      --accent2: #7eb8c8;
+      --text: #e8e2d9;
+      --text-muted: #6b6560;
+      --text-dim: #a09890;
+      --danger: #c87e7e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HEADER */
+    header {
+      padding: 2rem 2.5rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .header-left h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+
+    .header-left p {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+      letter-spacing: 0.05em;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .search-wrap {
+      position: relative;
+    }
+
+    .search-wrap input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 0.82rem;
+      padding: 0.5rem 1rem 0.5rem 2.2rem;
+      border-radius: 4px;
+      width: 220px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-wrap input::placeholder { color: var(--text-muted); }
+    .search-wrap input:focus { border-color: var(--accent); }
+
+    .search-wrap svg {
+      position: absolute;
+      left: 0.65rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    /* LAYOUT */
+    .app {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      height: calc(100vh - 80px);
+    }
+
+    /* SIDEBAR */
+    aside {
+      width: 280px;
+      min-width: 220px;
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 1rem 0;
+      flex-shrink: 0;
+    }
+
+    aside::-webkit-scrollbar { width: 4px; }
+    aside::-webkit-scrollbar-track { background: transparent; }
+    aside::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .tree-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0 1.2rem 0.5rem;
+    }
+
+    .tree-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.38rem 1.2rem;
+      cursor: pointer;
+      transition: background 0.15s;
+      user-select: none;
+      border-left: 2px solid transparent;
+    }
+
+    .tree-item:hover { background: var(--surface2); }
+    .tree-item.active {
+      background: var(--surface2);
+      border-left-color: var(--accent);
+    }
+
+    .tree-item .icon { font-size: 0.85rem; flex-shrink: 0; }
+
+    .tree-item .name {
+      font-size: 0.83rem;
+      color: var(--text-dim);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+
+    .tree-item.folder > .name { color: var(--text); font-weight: 500; }
+    .tree-item.pdf-file > .name { color: var(--text-dim); }
+    .tree-item.pdf-file.active > .name { color: var(--accent); }
+
+    .tree-item .toggle {
+      width: 14px;
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      transition: transform 0.2s;
+      flex-shrink: 0;
+    }
+
+    .tree-item .toggle.open { transform: rotate(90deg); }
+
+    .tree-children { display: none; }
+    .tree-children.open { display: block; }
+
+    /* MAIN */
+    main {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* BREADCRUMB */
+    .breadcrumb {
+      padding: 0.75rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .breadcrumb span { color: var(--text-dim); cursor: pointer; }
+    .breadcrumb span:hover { color: var(--accent); }
+    .breadcrumb .sep { color: var(--border); }
+    .breadcrumb .current { color: var(--accent); cursor: default; }
+
+    /* CONTENT */
+    .content-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 2rem 2rem;
+    }
+
+    .content-area::-webkit-scrollbar { width: 4px; }
+    .content-area::-webkit-scrollbar-thumb { background: var(--border); }
+
+    /* FOLDER VIEW */
+    .folder-view h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      margin-bottom: 0.4rem;
+      color: var(--text);
+    }
+
+    .folder-view .meta {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.1rem 1rem;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.15s;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .card .card-icon { font-size: 1.5rem; }
+    .card .card-name {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .card.pdf-card .card-name { color: var(--text-dim); font-weight: 400; }
+    .card .card-type {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* PDF VIEWER */
+    .pdf-viewer {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .pdf-viewer .pdf-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .pdf-viewer .pdf-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      color: var(--text);
+    }
+
+    .btn {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem;
+      padding: 0.4rem 0.9rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.15s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .btn.primary {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .pdf-frame-wrap {
+      flex: 1;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      background: #1a1a1a;
+      min-height: 500px;
+    }
+
+    .pdf-frame-wrap iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      min-height: 500px;
+    }
+
+    /* WELCOME */
+    .welcome {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+      gap: 1rem;
+      padding: 2rem;
+    }
+
+    .welcome .big-icon { font-size: 3rem; opacity: 0.3; }
+
+    .welcome h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      color: var(--text-dim);
+    }
+
+    .welcome p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      max-width: 320px;
+      line-height: 1.7;
+    }
+
+    /* UPLOAD ZONE */
+    .upload-section {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .upload-section p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      flex: 1;
+    }
+
+    .upload-section strong { color: var(--accent); }
+
+    #folderInput { display: none; }
+
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin: 2rem;
+    }
+
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(200, 169, 110, 0.04);
+    }
+
+    .drop-zone .dz-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    .drop-zone h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; margin-bottom: 0.4rem; }
+    .drop-zone p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; }
+    .drop-zone p strong { color: var(--accent); }
+
+    /* SEARCH RESULTS */
+    .search-results {
+      padding: 0.5rem 0;
+    }
+
+    .search-result-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 1rem;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+
+    .search-result-item:hover { background: var(--surface2); }
+    .search-result-item .sr-name { font-size: 0.85rem; color: var(--text); }
+    .search-result-item .sr-path { font-size: 0.72rem; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; }
+
+    .no-results { text-align: center; padding: 3rem; color: var(--text-muted); font-size: 0.85rem; }
+
+    /* STATUS BAR */
+    .status-bar {
+      padding: 0.4rem 1.5rem;
+      border-top: 1px solid var(--border);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .status-bar span { display: flex; align-items: center; gap: 0.3rem; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); display: inline-block; }
+
+    /* PASSWORD SCREEN */
+    #passwordScreen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    #passwordScreen.hidden { display: none; }
+
+    .lock-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 2.5rem 2rem;
+      width: 320px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.2rem;
+      text-align: center;
+    }
+
+    .lock-box .lock-icon { font-size: 2.5rem; }
+
+    .lock-box h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      color: var(--text);
+    }
+
+    .lock-box p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .lock-box input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 1.1rem;
+      letter-spacing: 0.3em;
+      padding: 0.7rem 1rem;
+      border-radius: 6px;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .lock-box input:focus { border-color: var(--accent); }
+
+    .lock-box input.error {
+      border-color: var(--danger);
+      animation: shake 0.3s ease;
+    }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    .lock-box .error-msg {
+      font-size: 0.75rem;
+      color: var(--danger);
+      font-family: 'IBM Plex Mono', monospace;
+      min-height: 1rem;
+    }
+
+    .lock-box .btn-unlock {
+      width: 100%;
+      padding: 0.65rem;
+      background: var(--accent);
+      color: #0d0d0d;
+      border: none;
+      border-radius: 6px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .lock-box .btn-unlock:hover { opacity: 0.85; }
+
+    /* MOBILE */
+    @media (max-width: 680px) {
+      .app { flex-direction: column; height: auto; }
+      aside { width: 100%; height: 220px; border-right: none; border-bottom: 1px solid var(--border); }
+      main { height: calc(100vh - 220px - 80px); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="passwordScreen">
+  <div class="lock-box">
+    <div class="lock-icon">🔐</div>
+    <h2>Ma Base de Connaissances</h2>
+    <p>Entrez votre mot de passe pour accéder à vos documents.</p>
+    <input type="password" id="pwdInput" placeholder="••••" maxlength="20"
+      onkeydown="if(event.key==='Enter') checkPassword()"/>
+    <div class="error-msg" id="pwdError"></div>
+    <button class="btn-unlock" onclick="checkPassword()">Déverrouiller</button>
+  </div>
+</div>
+
+<header>
+  <div class="header-left">
+    <h1>📚 Ma Base de Connaissances</h1>
+    <p id="headerMeta">Aucun dossier chargé — importez vos fichiers ci-dessous</p>
+  </div>
+  <div class="header-right">
+    <div class="search-wrap">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="searchInput" placeholder="Rechercher un document..." oninput="onSearch(this.value)"/>
+    </div>
+    <button class="btn primary" onclick="document.getElementById('folderInput').click()">
+      ＋ Charger dossier
+    </button>
+    <input type="file" id="folderInput" webkitdirectory multiple accept=".pdf" onchange="loadFiles(this.files)"/>
+  </div>
+</header>
+
+<div class="app">
+  <aside id="sidebar">
+    <div class="tree-label">Structure</div>
+    <div id="treeRoot"></div>
+  </aside>
+
+  <main>
+    <div class="breadcrumb" id="breadcrumb">
+      <span onclick="showWelcome()">🏠 Accueil</span>
+    </div>
+    <div class="content-area" id="contentArea">
+      <div class="drop-zone" id="dropZone">
+        <div class="dz-icon">🗂️</div>
+        <h3>Importez votre clé USB</h3>
+        <p>Cliquez sur <strong>« Charger dossier »</strong> en haut à droite<br/>ou glissez-déposez votre dossier ici.<br/><br/>Vos PDF et leur structure seront chargés automatiquement.</p>
+      </div>
+    </div>
+    <div class="status-bar" id="statusBar">
+      <span><span class="dot"></span> Local — aucune donnée envoyée sur internet</span>
+      <span id="statusCount">0 document(s)</span>
+    </div>
+  </main>
+</div>
+
+<script>
+  // ─── PASSWORD ─────────────────────────────────────────────────────────────
+  const HASH = "389c8e08359f04c3e38a7a5d64dbade9ab433c7932568920945433bbd3164533"; // SHA-256 of "0169"
+
+  async function sha256(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  async function checkPassword() {
+    const val = document.getElementById('pwdInput').value;
+    const hash = await sha256(val);
+    if (hash === HASH) {
+      document.getElementById('passwordScreen').classList.add('hidden');
+      sessionStorage.setItem('unlocked', '1');
+    } else {
+      const input = document.getElementById('pwdInput');
+      const err = document.getElementById('pwdError');
+      input.classList.add('error');
+      err.textContent = 'Mot de passe incorrect.';
+      setTimeout(() => { input.classList.remove('error'); input.value = ''; }, 800);
+    }
+  }
+
+  // Auto-unlock if already authenticated this session
+  if (sessionStorage.getItem('unlocked') === '1') {
+    document.getElementById('passwordScreen').classList.add('hidden');
+  }
+
+  // ─── STATE ───────────────────────────────────────────────────────────────
+  let fileTree = {};      // nested object
+  let allFiles = [];      // flat list {name, path, pathArr, file}
+  let currentPath = [];   // navigation path
+  let currentFile = null;
+
+  // ─── LOAD FILES ──────────────────────────────────────────────────────────
+  function loadFiles(fileList) {
+    fileTree = {};
+    allFiles = [];
+
+    Array.from(fileList).forEach(f => {
+      // Only PDFs
+      if (!f.name.toLowerCase().endsWith('.pdf')) return;
+
+      // relativePath = "Politique/Elections/doc.pdf"
+      const rel = f.webkitRelativePath || f.name;
+      const parts = rel.split('/');
+
+      // Remove top-level root folder name (the USB/folder name itself)
+      const pathParts = parts.slice(1); // skip root folder
+      if (pathParts.length === 0) return;
+
+      // Build nested tree
+      let node = fileTree;
+      pathParts.forEach((part, i) => {
+        if (i === pathParts.length - 1) {
+          // file
+          if (!node.__files) node.__files = [];
+          node.__files.push({ name: part, file: f });
+        } else {
+          if (!node[part]) node[part] = {};
+          node = node[part];
+        }
+      });
+
+      allFiles.push({
+        name: f.name,
+        path: pathParts.join(' / '),
+        pathArr: pathParts,
+        file: f
+      });
+    });
+
+    renderTree(fileTree, document.getElementById('treeRoot'), []);
+    updateMeta();
+    showFolder([]);
+  }
+
+  function updateMeta() {
+    const folders = countFolders(fileTree);
+    document.getElementById('headerMeta').textContent =
+      `${allFiles.length} document(s) PDF · ${folders} dossier(s)`;
+    document.getElementById('statusCount').textContent =
+      `${allFiles.length} document(s) chargé(s)`;
+  }
+
+  function countFolders(node, count = 0) {
+    Object.keys(node).filter(k => k !== '__files').forEach(k => {
+      count = countFolders(node[k], count + 1);
+    });
+    return count;
+  }
+
+  // ─── TREE RENDER ─────────────────────────────────────────────────────────
+  function renderTree(node, container, pathArr) {
+    container.innerHTML = '';
+
+    const folders = Object.keys(node).filter(k => k !== '__files').sort();
+    const files = node.__files || [];
+
+    folders.forEach(folder => {
+      const itemPath = [...pathArr, folder];
+
+      const wrap = document.createElement('div');
+
+      const item = document.createElement('div');
+      item.className = 'tree-item folder';
+      item.style.paddingLeft = `${1.2 + pathArr.length * 1}rem`;
+
+      const toggle = document.createElement('span');
+      toggle.className = 'toggle';
+      toggle.textContent = '▶';
+
+      const icon = document.createElement('span');
+      icon.className = 'icon';
+      icon.textContent = '📁';
+
+      const name = document.createElement('span');
+      name.className = 'name';
+      name.textContent = folder;
+
+      item.appendChild(toggle);
+      item.appendChild(icon);
+      item.appendChild(name);
+
+      const children = document.createElement('div');
+      children.className = 'tree-children';
+
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = children.classList.contains('open');
+        children.classList.toggle('open', !isOpen);
+        toggle.classList.toggle('open', !isOpen);
+        icon.textContent = isOpen ? '📁' : '📂';
+        showFolder(itemPath);
+      });
+
+      renderTree(node[folder], children, itemPath);
+      wrap.appendChild(item);
+      wrap.appendChild(children);
+      container.appendChild(wrap);
+    });
+
+    files.forEach(({ name: fname, file }) => {
+      const item = document.createElement('div');
+      item.className = 'tree-item pdf-file';
+      item.style.paddingLeft = `${1.2 + pathArr.length * 1}rem`;
+      item.dataset.path = JSON.stringify([...pathArr, fname]);
+
+      const icon = document.createElement('span');
+      icon.className = 'icon';
+      icon.textContent = '📄';
+
+      const name = document.createElement('span');
+      name.className = 'name';
+      name.textContent = fname.replace('.pdf', '').replace('.PDF', '');
+
+      item.appendChild(icon);
+      item.appendChild(name);
+
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active'));
+        item.classList.add('active');
+        openPDF(file, fname, pathArr);
+      });
+
+      container.appendChild(item);
+    });
+  }
+
+  // ─── NAVIGATION ──────────────────────────────────────────────────────────
+  function getNodeAt(pathArr) {
+    let node = fileTree;
+    for (const p of pathArr) {
+      if (node[p]) node = node[p];
+      else return null;
+    }
+    return node;
+  }
+
+  function showFolder(pathArr) {
+    currentPath = pathArr;
+    currentFile = null;
+    updateBreadcrumb(pathArr);
+
+    const node = pathArr.length === 0 ? fileTree : getNodeAt(pathArr);
+    if (!node) return;
+
+    const folders = Object.keys(node).filter(k => k !== '__files').sort();
+    const files = node.__files || [];
+
+    const label = pathArr.length === 0 ? 'Accueil' : pathArr[pathArr.length - 1];
+    const totalItems = folders.length + files.length;
+
+    let html = `<div class="folder-view">
+      <h2>${label}</h2>
+      <div class="meta">${folders.length} dossier(s) · ${files.length} document(s)</div>
+      <div class="grid">`;
+
+    folders.forEach(f => {
+      const subNode = node[f];
+      const subFolders = Object.keys(subNode).filter(k => k !== '__files').length;
+      const subFiles = (subNode.__files || []).length;
+      html += `<div class="card" onclick="navigateFolder('${escAttr(JSON.stringify([...pathArr, f]))}')">
+        <div class="card-icon">📂</div>
+        <div class="card-name">${esc(f)}</div>
+        <div class="card-type">${subFolders} dossier(s) · ${subFiles} PDF</div>
+      </div>`;
+    });
+
+    files.forEach(({ name: fname, file }, i) => {
+      html += `<div class="card pdf-card" onclick="openPDFByIndex(${JSON.stringify([...pathArr])}, ${i})">
+        <div class="card-icon">📄</div>
+        <div class="card-name">${esc(fname.replace(/\.pdf$/i, ''))}</div>
+        <div class="card-type">PDF</div>
+      </div>`;
+    });
+
+    html += `</div></div>`;
+    document.getElementById('contentArea').innerHTML = html;
+  }
+
+  window.navigateFolder = function(jsonPath) {
+    const pathArr = JSON.parse(jsonPath);
+    showFolder(pathArr);
+  };
+
+  window.openPDFByIndex = function(pathArr, i) {
+    const node = pathArr.length === 0 ? fileTree : getNodeAt(pathArr);
+    if (!node) return;
+    const files = node.__files || [];
+    if (!files[i]) return;
+    openPDF(files[i].file, files[i].name, pathArr);
+  };
+
+  function openPDF(file, fname, pathArr) {
+    currentFile = file;
+    updateBreadcrumb([...pathArr, fname]);
+
+    const url = URL.createObjectURL(file);
+    const displayName = fname.replace(/\.pdf$/i, '');
+
+    document.getElementById('contentArea').innerHTML = `
+      <div class="pdf-viewer">
+        <div class="pdf-header">
+          <div class="pdf-title">${esc(displayName)}</div>
+          <a class="btn primary" href="${url}" download="${esc(fname)}">⬇ Télécharger</a>
+        </div>
+        <div class="pdf-frame-wrap">
+          <iframe src="${url}" title="${esc(fname)}"></iframe>
+        </div>
+      </div>`;
+  }
+
+  // ─── BREADCRUMB ──────────────────────────────────────────────────────────
+  function updateBreadcrumb(pathArr) {
+    const bc = document.getElementById('breadcrumb');
+    let html = `<span onclick="showFolder([])">🏠 Accueil</span>`;
+
+    pathArr.forEach((part, i) => {
+      const sub = pathArr.slice(0, i + 1);
+      html += `<span class="sep">/</span>`;
+      if (i === pathArr.length - 1) {
+        html += `<span class="current">${esc(part.replace(/\.pdf$/i, ''))}</span>`;
+      } else {
+        html += `<span onclick="showFolder(${JSON.stringify(sub)})">${esc(part)}</span>`;
+      }
+    });
+
+    bc.innerHTML = html;
+  }
+
+  window.showWelcome = function() { showFolder([]); };
+
+  // ─── SEARCH ──────────────────────────────────────────────────────────────
+  function onSearch(query) {
+    if (!query.trim()) {
+      showFolder(currentPath);
+      return;
+    }
+
+    const q = query.toLowerCase();
+    const results = allFiles.filter(f =>
+      f.name.toLowerCase().includes(q) || f.path.toLowerCase().includes(q)
+    );
+
+    let html = `<div class="search-results">
+      <div style="margin-bottom:1rem;font-size:0.8rem;color:var(--text-muted);">${results.length} résultat(s) pour « ${esc(query)} »</div>`;
+
+    if (results.length === 0) {
+      html += `<div class="no-results">Aucun document trouvé.</div>`;
+    } else {
+      results.forEach(r => {
+        html += `<div class="search-result-item" onclick="openPDFFromSearch('${escAttr(r.path)}')">
+          <span>📄</span>
+          <div>
+            <div class="sr-name">${esc(r.name.replace(/\.pdf$/i, ''))}</div>
+            <div class="sr-path">${esc(r.path)}</div>
+          </div>
+        </div>`;
+      });
+    }
+
+    html += `</div>`;
+    document.getElementById('contentArea').innerHTML = html;
+    updateBreadcrumb([`Recherche : ${query}`]);
+  }
+
+  window.openPDFFromSearch = function(path) {
+    const r = allFiles.find(f => f.path === path);
+    if (r) openPDF(r.file, r.name, r.pathArr.slice(0, -1));
+  };
+
+  // ─── DRAG & DROP ─────────────────────────────────────────────────────────
+  const dropZoneEl = document.getElementById('dropZone');
+  if (dropZoneEl) {
+    dropZoneEl.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropZoneEl.classList.add('dragover');
+    });
+    dropZoneEl.addEventListener('dragleave', () => dropZoneEl.classList.remove('dragover'));
+    dropZoneEl.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZoneEl.classList.remove('dragover');
+      const items = e.dataTransfer.items;
+      if (items) {
+        // Trigger file input as fallback message
+        alert("Pour charger un dossier entier, utilisez le bouton « Charger dossier » en haut à droite (limitation navigateur).");
+      }
+    });
+    dropZoneEl.addEventListener('click', () => document.getElementById('folderInput').click());
+  }
+
+  // ─── UTILS ───────────────────────────────────────────────────────────────
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function escAttr(s) {
+    return String(s).replace(/'/g, "\\'");
+  }
+</script>
+</body>
+</html>
