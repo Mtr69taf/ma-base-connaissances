@@ -826,7 +826,7 @@
     const label = pathArr.length === 0 ? 'Accueil' : pathArr[pathArr.length - 1];
 
     let html = `<div class="folder-view">
-      <h2>${label}</h2>
+      <h2>${esc(label)}</h2>
       <div class="meta">${folders.length} dossier(s) · ${files.length} document(s)</div>
       <div class="grid">`;
 
@@ -834,7 +834,8 @@
       const subNode = node[f];
       const subFolders = Object.keys(subNode).filter(k => k !== '__files').length;
       const subFiles = (subNode.__files || []).length;
-      html += `<div class="card" onclick="navigateFolder('${escAttr(JSON.stringify([...pathArr, f]))}')">
+      const pathData = btoa(unescape(encodeURIComponent(JSON.stringify([...pathArr, f]))));
+      html += `<div class="card folder-card" data-path="${pathData}">
         <div class="card-icon">📂</div>
         <div class="card-name">${esc(f)}</div>
         <div class="card-type">${subFolders} dossier(s) · ${subFiles} PDF</div>
@@ -842,7 +843,10 @@
     });
 
     files.forEach(({ name: fname, githubPath }) => {
-      html += `<div class="card pdf-card" onclick="openPDF('${escAttr(githubPath)}', '${escAttr(fname)}', ${JSON.stringify(pathArr)})">
+      const pathData = btoa(unescape(encodeURIComponent(JSON.stringify(pathArr))));
+      const gpData = btoa(unescape(encodeURIComponent(githubPath)));
+      const fnData = btoa(unescape(encodeURIComponent(fname)));
+      html += `<div class="card pdf-card" data-gp="${gpData}" data-fn="${fnData}" data-path="${pathData}">
         <div class="card-icon">📄</div>
         <div class="card-name">${esc(fname.replace(/\.pdf$/i, ''))}</div>
         <div class="card-type">PDF</div>
@@ -851,11 +855,24 @@
 
     html += `</div></div>`;
     document.getElementById('contentArea').innerHTML = html;
-  }
 
-  window.navigateFolder = function(jsonPath) {
-    showFolder(JSON.parse(jsonPath));
-  };
+    // Attach click events
+    document.querySelectorAll('.folder-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const p = JSON.parse(decodeURIComponent(escape(atob(card.dataset.path))));
+        showFolder(p);
+      });
+    });
+
+    document.querySelectorAll('.pdf-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const gp = decodeURIComponent(escape(atob(card.dataset.gp)));
+        const fn = decodeURIComponent(escape(atob(card.dataset.fn)));
+        const p = JSON.parse(decodeURIComponent(escape(atob(card.dataset.path))));
+        openPDF(gp, fn, p);
+      });
+    });
+  }
 
   window.openPDF = function(githubPath, fname, pathArr) {
     updateBreadcrumb([...pathArr, fname]);
